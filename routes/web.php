@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -33,7 +34,7 @@ Route::middleware([
     // ==========================================
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminController::class, 'index'])->name('dashboard');
-        Route::post('/users', [\App\Http\Controllers\Admin\AdminController::class, 'store'])->name('users.store'); // Untuk mendaftarkan dosen/mahasiswa
+        Route::post('/users', [\App\Http\Controllers\Admin\AdminController::class, 'store'])->name('users.store'); 
     });
 
 
