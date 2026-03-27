@@ -10,16 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
-// Import ikon dari lucide-vue-next (bawaan shadcn)
 import { Menu, LogOut, ChevronDown, ShieldAlert, GraduationCap, BookOpen } from 'lucide-vue-next';
 
-// Mengambil data user yang sedang login dari Inertia props
 const page = usePage();
 const user = page.props.auth.user;
 
 const isMobileMenuOpen = ref(false);
-
-// Fungsi Logout
 const logout = () => {
     router.post(route('logout'));
 };
