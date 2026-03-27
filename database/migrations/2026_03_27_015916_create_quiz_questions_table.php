@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration {
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('quiz_questions', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('quiz_id')->constrained()->cascadeOnDelete();
+            $table->text('question_text');
+            $table->string('option_a');
+            $table->string('option_b');
+            $table->string('option_c');
+            $table->string('option_d');
+            $table->char('correct_answer', 1); // Jawaban benar: 'A', 'B', 'C', atau 'D'
+            $table->timestamps();
+        });
+
+        DB::statement('ALTER TABLE quiz_questions ENABLE ROW LEVEL SECURITY;');
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('quiz_questions');
+    }
+};
