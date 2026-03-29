@@ -49,16 +49,19 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         Fortify::authenticateUsing(function (Request $request) {
-            $user = User::where('username', $request->username)->first();
+            $input = strtolower($request->input('username'));
 
+            $user = User::whereRaw('LOWER(email) = ?', [$input])
+                ->orWhereRaw('LOWER(username) = ?', [$input])
+                ->first();
             if ($user && Hash::check($request->password, $user->password)) {
 
-                $userRole = $user->role ?? '';
-
-                if (strtolower($userRole) !== strtolower($request->role)) {
-                    throw ValidationException::withMessages([
-                        'role' => 'Akun ini tidak terdaftar sebagai ' . ucfirst($request->role) . '.',
-                    ]);
+                if ($request->has('role') && $request->role != '') {
+                    if (strtolower($user->role) !== strtolower($request->role)) {
+                        throw ValidationException::withMessages([
+                            'role' => 'Akun ini tidak terdaftar sebagai ' . ucfirst($request->role) . '.',
+                        ]);
+                    }
                 }
 
                 return $user;

@@ -12,6 +12,8 @@ class Meeting extends Model
 
     protected $guarded = [];
 
+    protected $fillable = ['team_id', 'meeting_number', 'title', 'description'];
+
     public function team()
     {
         return $this->belongsTo(Team::class);

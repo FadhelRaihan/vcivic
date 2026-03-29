@@ -8,20 +8,49 @@ use App\Models\Discussion;
 
 class DiscussionController extends Controller
 {
-    public function store(Request $request, Meeting $meeting)
+    public function store(Request $request, $meetingId)
+    {
+        $request->validate(['body' => 'required|string|max:1000']);
+
+        $meeting = Meeting::find($meetingId);
+        if ($meeting) {
+            $meeting->discussions()->create([
+                'user_id' => auth()->id(),
+                'body' => $request->body,
+                'parent_id' => null,
+            ]);
+        }
+        return back();
+    }
+
+    public function storeReply(Request $request, $discussionId)
     {
         $request->validate([
-            'body' => 'required|string',
-            'parent_id' => 'nullable|exists:discussions,id'
+            'body' => 'required|string|max:1000',
         ]);
 
-        Discussion::create([
-            'meeting_id' => $meeting->id,
-            'user_id' => $request->user()->id,
-            'parent_id' => $request->parent_id,
-            'body' => $request->body
-        ]);
+        $parent = Discussion::find($discussionId);
 
-        return back()->with('success', 'Diskusi berhasil dikirim.');
+        if ($parent) {
+            // Gunakan cara ini agar 100% dipaksa masuk ke database
+            Discussion::create([
+                'user_id' => auth()->id(),
+                'meeting_id' => $parent->meeting_id,
+                'parent_id' => $parent->id,
+                'body' => $request->body,
+            ]);
+        }
+
+        return back();
+    }
+
+    public function destroy($discussionId)
+    {
+        $discussion = Discussion::find($discussionId);
+        // Hapus hanya jika pesannya masih ada
+        if ($discussion) {
+            $discussion->delete();
+        }
+        return back();
     }
 }

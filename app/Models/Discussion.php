@@ -19,4 +19,9 @@ class Discussion extends Model
     {
         return $this->hasMany(Discussion::class, 'parent_id')->with('user');
     }
+
+    public function parent()
+    {
+        return $this->belongsTo(Discussion::class, 'parent_id');
+    }
 }

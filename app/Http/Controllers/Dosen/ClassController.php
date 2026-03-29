@@ -31,11 +31,36 @@ class ClassController extends Controller
         return back()->with('success', 'Kelas berhasil dibuat.');
     }
 
+    public function update(Request $request, Team $team)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+
+        $team->update([
+            'name' => $request->name,
+        ]);
+
+        return back()->with('success', 'Nama kelas berhasil diperbarui.');
+    }
+
     public function manage(Team $team)
     {
-        $team->load(['users', 'meetings']);
+        $team->load(['meetings.contents']);
 
         return Inertia::render('Dosen/Classes/Manage', [
+            'team' => $team
+        ]);
+    }
+
+    public function show(Team $team)
+    {
+        $team->load([
+            'meetings.contents',
+            'meetings.discussions.user',
+            'meetings.discussions.replies.user',
+            'users'
+        ]);
+
+        return Inertia::render('Dosen/Classes/Show', [
             'team' => $team
         ]);
     }

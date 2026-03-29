@@ -13,14 +13,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->withPersonalTeam()->create();
-
-        $this->call([
-            MeetingSeeder::class,
+        User::factory()->create([
+            'username' => 'Admin',
+            'email' => 'admin@vcivic.id',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'nim_nip' => '198001012005011001'
         ]);
 
         User::factory()->create([
-            'name' => 'Dosen VCivic',
+            'username' => 'Dosen VCivic',
             'email' => 'dosen@vcivic.id',
             'password' => bcrypt('password'),
             'role' => 'dosen',
@@ -28,7 +30,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         User::factory()->create([
-            'name' => 'Mahasiswa Andi',
+            'username' => 'Mahasiswa Andi',
             'email' => 'andi@mahasiswa.id',
             'password' => bcrypt('password'),
             'role' => 'mahasiswa',
