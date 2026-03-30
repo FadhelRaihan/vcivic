@@ -221,8 +221,8 @@ onUnmounted(() => {
                                     <iframe
                                         :src="`https://docs.google.com/gview?url=${encodeURIComponent(selectedContent.file_url)}&embedded=true`"
                                         class="w-full flex-1 h-full rounded-lg border-0 bg-slate-100"></iframe>
-                                    <div class="text-right shrink-0"><a :href="selectedContent.file_url" target="_blank"
-                                            class="text-sm text-blue-600 hover:underline">Download</a></div>
+                                    <!-- <div class="text-right shrink-0"><a :href="selectedContent.file_url" target="_blank"
+                                            class="text-sm text-blue-600 hover:underline">Download</a></div> -->
                                 </div>
                                 <div v-else
                                     class="flex-1 flex flex-col items-center justify-center text-center bg-slate-50 rounded-lg">
@@ -377,7 +377,7 @@ onUnmounted(() => {
                                             <td class="px-6 py-4 font-mono">{{ grade.user?.nim_nip || '-' }}</td>
                                             <td class="px-6 py-4 font-medium text-slate-800 capitalize">{{
                                                 grade.user?.username
-                                                }}</td>
+                                            }}</td>
                                             <td class="px-6 py-4 text-center text-xs text-slate-500">{{ new
                                                 Date(grade.created_at).toLocaleString('id-ID', {
                                                     day: 'numeric',

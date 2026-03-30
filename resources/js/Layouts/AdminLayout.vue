@@ -45,7 +45,7 @@ const adminMenus = [
         ]">
             <div class="h-16 flex items-center justify-between px-6 border-b border-r border-slate-200 shrink-0">
                 <Link :href="route('dashboard')" class="">
-                    <img src="/Logo.svg" alt="logo" class="w-20">
+                    <img src="../../../public/Logo.svg" alt="logo" class="w-20">
                 </Link>
                 <button @click="isSidebarOpen = false" class="md:hidden text-slate-400 hover:text-white">
                     <X class="w-5 h-5" />
