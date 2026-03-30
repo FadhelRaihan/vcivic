@@ -66,18 +66,27 @@ const openContentModal = (meetingId, content = null) => {
 // Menyelesaikan unggahan/edit info tautan resource lampiran materi pertemuan ke endpoint.
 const submitContent = () => {
     if (isEditContentMode.value) {
-        router.post(route('dosen.meetings.contents.update', { team: props.team.id, meeting: selectedMeetingId.value, content: selectedContentId.value }), {
-            _method: 'put',
-            type: contentForm.type,
-            title: contentForm.title,
-            file_url: contentForm.file_url,
-            file_upload: contentForm.file_upload,
-        }, {
-            onSuccess: () => { isContentModalOpen.value = false; toast.success('Materi diperbarui.'); },
+        contentForm.post(route('dosen.meetings.contents.update', { 
+            team: props.team.id, 
+            meeting: selectedMeetingId.value, 
+            content: selectedContentId.value 
+        }), {
+            preserveScroll: true,
+            onSuccess: () => { 
+                isContentModalOpen.value = false; 
+                toast.success('Materi diperbarui.'); 
+            },
         });
     } else {
-        contentForm.post(route('dosen.meetings.contents.store', { team: props.team.id, meeting: selectedMeetingId.value }), {
-            onSuccess: () => { isContentModalOpen.value = false; toast.success('Materi diunggah.'); }
+        contentForm.post(route('dosen.meetings.contents.store', { 
+            team: props.team.id, 
+            meeting: selectedMeetingId.value 
+        }), {
+            preserveScroll: true,
+            onSuccess: () => { 
+                isContentModalOpen.value = false; 
+                toast.success('Materi diunggah.'); 
+            }
         });
     }
 };

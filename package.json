@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build && vite build --ssr",
-        "dev": "vite"
+        "dev": "vite",
+        "vercel-build": "npm run build"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^2.0",

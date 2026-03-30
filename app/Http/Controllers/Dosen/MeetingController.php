@@ -117,8 +117,24 @@ class MeetingController extends Controller
         $fileUrl = $request->file_url;
 
         if ($request->hasFile('file_upload')) {
-            $path = $request->file('file_upload')->store('meeting_contents', 'public');
-            $fileUrl = asset('storage/' . $path);
+            $file = $request->file('file_upload');
+            // Membuat nama file unik agar tidak bentrok
+            $filename = time() . '_' . $file->getClientOriginalName();
+
+            // Simpan ke Supabase
+            $path = $file->storeAs('meeting_contents', $filename, 'supabase');
+
+            if ($path) {
+                // RAKIT URL PUBLIK SUPABASE (Manual & Pasti Jalan)
+                // Format: https://[PROJECT-ID].supabase.co/storage/v1/object/public/[BUCKET]/[PATH]
+
+                $endpoint = env('SUPABASE_STORAGE_ENDPOINT'); // https://id.supabase.co/storage/v1/s3
+                $bucket = env('SUPABASE_STORAGE_BUCKET');
+
+                // Ganti ujung /s3 menjadi /object/public/nama-bucket/
+                $baseUrl = str_replace('/s3', '/object/public/' . $bucket . '/', $endpoint);
+                $fileUrl = $baseUrl . $path;
+            }
         }
 
         MeetingContent::create([
@@ -157,12 +173,24 @@ class MeetingController extends Controller
         $fileUrl = $request->file_url ?: $content->file_url;
 
         if ($request->hasFile('file_upload')) {
-            if ($content->file_url && str_contains($content->file_url, 'storage/meeting_contents')) {
-                $oldPath = str_replace(asset('storage/'), '', $content->file_url);
-                Storage::disk('public')->delete($oldPath);
+            $file = $request->file('file_upload');
+            // Membuat nama file unik agar tidak bentrok
+            $filename = time() . '_' . $file->getClientOriginalName();
+
+            // Simpan ke Supabase
+            $path = $file->storeAs('meeting_contents', $filename, 'supabase');
+
+            if ($path) {
+                // RAKIT URL PUBLIK SUPABASE (Manual & Pasti Jalan)
+                // Format: https://[PROJECT-ID].supabase.co/storage/v1/object/public/[BUCKET]/[PATH]
+
+                $endpoint = env('SUPABASE_STORAGE_ENDPOINT'); // https://id.supabase.co/storage/v1/s3
+                $bucket = env('SUPABASE_STORAGE_BUCKET');
+
+                // Ganti ujung /s3 menjadi /object/public/nama-bucket/
+                $baseUrl = str_replace('/s3', '/object/public/' . $bucket . '/', $endpoint);
+                $fileUrl = $baseUrl . $path;
             }
-            $path = $request->file('file_upload')->store('meeting_contents', 'public');
-            $fileUrl = asset('storage/' . $path);
         }
 
         $content->update([
@@ -180,12 +208,20 @@ class MeetingController extends Controller
      */
     public function destroyContent(Team $team, Meeting $meeting, MeetingContent $content)
     {
-        if ($content->file_url && str_contains($content->file_url, 'storage/meeting_contents')) {
-            $oldPath = str_replace(asset('storage/'), '', $content->file_url);
-            Storage::disk('public')->delete($oldPath);
+        if ($content->file_url) {
+            if (str_contains($content->file_url, 'storage/meeting_contents')) {
+                $oldPath = explode('storage/', $content->file_url)[1] ?? null;
+                if ($oldPath)
+                    Storage::disk('public')->delete($oldPath);
+            } elseif (str_contains($content->file_url, 'supabase.co')) {
+                $oldPath = explode('meeting_contents/', $content->file_url)[1] ?? null;
+                if ($oldPath)
+                    Storage::disk('supabase')->delete('meeting_contents/' . $oldPath);
+            }
         }
 
         $content->delete();
+
         return back()->with('success', 'Materi berhasil dihapus.');
     }
 }
