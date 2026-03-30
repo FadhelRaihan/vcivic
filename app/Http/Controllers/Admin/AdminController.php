@@ -1,4 +1,7 @@
 <?php
+/**
+ * Controller untuk mengelola dashboard dan data pengguna global dalam peran admin.
+ */
 
 namespace App\Http\Controllers\Admin;
 
@@ -10,6 +13,10 @@ use Inertia\Inertia;
 
 class AdminController extends Controller
 {
+    /**
+     * Menampilkan dashboard utama admin beserta statistik jumlah mahasiswa, dosen, dan kelas.
+     * Input: Tidak ada. Output: Render halaman Dashboard Admin di frontend.
+     */
     public function dashboard()
     {
         return Inertia::render('Admin/Dashboard', [
@@ -21,6 +28,10 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * Menampilkan tabel daftar semua pengguna sistem dengan kapabilitas pencarian.
+     * Input: Objek Request HTTP. Output: Render halaman Tabel Pengguna Admin.
+     */
     public function index(Request $request)
     {
         $query = User::query();
@@ -42,6 +53,10 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * Menambahkan pengguna baru secara manual dengan memvalidasi atribut registrasi.
+     * Input: Data Request pendaftaran (User). Output: Redirect ke halaman sebelumnya setelah berhasil.
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -67,6 +82,10 @@ class AdminController extends Controller
         return back()->with('success', 'Pengguna berhasil didaftarkan.');
     }
 
+    /**
+     * Memperbarui informasi profil atau izin pengguna termasuk kata sandi opsional.
+     * Input: Request dan instans User spesifik. Output: Redirect dengan notifikasi sukses.
+     */
     public function update(Request $request, User $user)
     {
         $rules = [
@@ -102,6 +121,10 @@ class AdminController extends Controller
         return back()->with('success', 'Pengguna berhasil diperbarui.');
     }
 
+    /**
+     * Menghapus data akun pengguna sepenuhnya dari database.
+     * Input: Model User target. Output: Redirect dan notifikasi sukses.
+     */
     public function destroy(User $user)
     {
         $user->delete();

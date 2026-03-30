@@ -1,4 +1,5 @@
 <script setup>
+// Halaman tampilan (UI) utama dari Dashboard untuk melihat ringkasan statistik Admin.
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { Users, GraduationCap, BookOpen } from 'lucide-vue-next';

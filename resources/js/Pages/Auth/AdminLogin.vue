@@ -1,4 +1,5 @@
 <script setup>
+// Form Halaman Login sekunder khusus bagi peran (Role) Administrator.
 import { ref } from 'vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { Head, useForm } from '@inertiajs/vue3';
@@ -14,11 +15,11 @@ const form = useForm({
 });
 
 const showPassword = ref(false);
-
+// Fungsi men-toggle properti visibilitas show/hide karakter kata sandi di dalam textbox.
 const togglePassword = () => {
     showPassword.value = !showPassword.value;
 };
-
+// Mengirim request form login (username, role 'admin', pass) ke sistem otentikasi.
 const submit = () => {
     form.post(route('login'), {
         onFinish: () => form.reset('password'),

@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->string('option_b');
             $table->string('option_c');
             $table->string('option_d');
-            $table->char('correct_answer', 1); // Jawaban benar: 'A', 'B', 'C', atau 'D'
+            $table->char('correct_answer', 1);
             $table->timestamps();
         });
 

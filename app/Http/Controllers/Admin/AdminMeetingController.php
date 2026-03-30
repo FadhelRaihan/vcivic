@@ -1,4 +1,7 @@
 <?php
+/**
+ * Controller untuk mengelola data pertemuan secara global oleh role Admin.
+ */
 
 namespace App\Http\Controllers\Admin;
 
@@ -10,6 +13,10 @@ use Inertia\Inertia;
 
 class AdminMeetingController extends Controller
 {
+    /**
+     * Menampilkan daftar semua pertemuan dengan informasi kelas serta menyediakan pencarian.
+     * Input: Request object opsional pencarian. Output: Render komponen halaman Admin/Meetings.
+     */
     public function index(Request $request)
     {
         // 1. Ambil data pertemuan beserta nama kelasnya
@@ -39,6 +46,10 @@ class AdminMeetingController extends Controller
         ]);
     }
 
+    /**
+     * Menyimpan data pertemuan baru yang ditambahkan oleh admin untuk kelas tertentu.
+     * Input: Request HTTP form meeting. Output: Redirect dengan notifikasi berhasil.
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -58,6 +69,10 @@ class AdminMeetingController extends Controller
         return back()->with('success', 'Pertemuan berhasil dibuat.');
     }
 
+    /**
+     * Memperbarui detail informasi pertemuan seperti urutan, judul, dan deskripsi.
+     * Input: Request HTTP form edit dan ID Meeting. Output: Redirect ke halaman asal dengan sukses.
+     */
     public function update(Request $request, Meeting $meeting)
     {
         $request->validate([
@@ -77,6 +92,10 @@ class AdminMeetingController extends Controller
         return back()->with('success', 'Pertemuan berhasil diperbarui.');
     }
 
+    /**
+     * Menghapus secara permanen data pertemuan (beserta content/discuss secara relasional).
+     * Input: ID Meeting yang akan dihapus. Output: Pesan berhasil via redirect back.
+     */
     public function destroy(Meeting $meeting)
     {
         $meeting->delete();

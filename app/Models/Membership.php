@@ -1,4 +1,7 @@
 <?php
+/**
+ * Model extend dari Jetstream Membership, mewakili record anggota grup di tabel pivot.
+ */
 
 namespace App\Models;
 

@@ -1,4 +1,5 @@
 <script setup>
+// File Layout Utama khusus untuk kerangka halaman Dashboard Admin.
 import { ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { Button } from '@/Components/ui/button';
@@ -17,7 +18,7 @@ const page = usePage();
 const user = page.props.auth.user;
 
 const isSidebarOpen = ref(false);
-
+// Mengeluarkan user admin dari sistem menggunakan rute logout bawaan Fortify.
 const logout = () => {
     router.post(route('logout'));
 };
@@ -34,10 +35,11 @@ const adminMenus = [
 <template>
     <div class="flex h-screen bg-slate-50 overflow-hidden">
 
-        <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 bg-slate-900/50 z-40 md:hidden">
+        <div v-if="isSidebarOpen && user.role === 'admin'" @click="isSidebarOpen = false"
+            class="fixed inset-0 bg-slate-900/50 z-40 md:hidden">
         </div>
 
-        <aside :class="[
+        <aside v-if="user.role === 'admin'" :class="[
             'fixed inset-y-0 left-0 z-50 w-64 bg-white text-slate-50 transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:flex md:flex-col',
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         ]">
@@ -66,13 +68,17 @@ const adminMenus = [
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
 
             <header
-                class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-30">
+                class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-30 shadow-sm">
 
                 <div class="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" @click="isSidebarOpen = true"
+                    <Button v-if="user.role === 'admin'" variant="ghost" size="icon" @click="isSidebarOpen = true"
                         class="md:hidden text-slate-600 -ml-2">
                         <Menu class="w-5 h-5" />
                     </Button>
+
+                    <Link v-if="user.role !== 'admin'" :href="route('dashboard')" class="mr-2 md:mr-6">
+                        <img src="/Logo.svg" alt="logo" class="w-20">
+                    </Link>
 
                     <div class="hidden sm:block">
                         <slot name="header" />
@@ -96,12 +102,12 @@ const adminMenus = [
                             <Button variant="ghost"
                                 class="flex items-center gap-3 hover:bg-slate-100 h-10 px-2 rounded-lg">
                                 <div
-                                    class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
-                                    {{ user?.name?.charAt(0) || 'A' }}
+                                    class="w-8 h-8 rounded-full bg-[#194872] text-white flex items-center justify-center font-bold text-sm shrink-0">
+                                    {{ user?.username?.charAt(0) || 'U' }}
                                 </div>
                                 <div class="hidden md:flex flex-col items-start leading-tight">
-                                    <span class="font-semibold text-sm text-slate-800">{{ user?.name || 'Admin'
-                                    }}</span>
+                                    <span class="font-semibold text-sm text-slate-800 capitalize">{{ user?.username ||
+                                        'User' }}</span>
                                     <span class="text-xs text-slate-500">{{ user.role.toUpperCase() }}</span>
                                 </div>
                                 <ChevronDown class="w-4 h-4 text-slate-400 hidden md:block" />
@@ -132,6 +138,6 @@ const adminMenus = [
 
         </div>
 
-        <Toaster position="top-center" richColors="true"/>
+        <Toaster position="top-center" richColors="true" />
     </div>
 </template>

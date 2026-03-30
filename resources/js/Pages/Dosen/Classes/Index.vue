@@ -1,4 +1,5 @@
 <script setup>
+// Halaman dashboard bagi entitas Dosen yang memuat grid berisi daftar kelas-kelas milik mereka.
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
@@ -12,6 +13,7 @@ const props = defineProps({
     classes: { type: Array, default: () => [] }
 });
 
+// Fungsi utilitas untuk menyalin teks random 'join code' 6 karakter demi mengundang mahasiswa.
 const copyJoinCode = (code) => {
     navigator.clipboard.writeText(code);
     toast.info('Kode Tersalin!', {
@@ -24,7 +26,7 @@ const isCreateModalOpen = ref(false);
 const form = useForm({
     name: '',
 });
-
+// Mengirim trigger permintaan POST untuk membuat sebuah ruang kelas/mata kuliah baru.
 const submit = () => {
     form.post(route('dosen.classes.store'), {
         onSuccess: () => {

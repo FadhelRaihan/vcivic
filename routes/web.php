@@ -62,21 +62,21 @@ Route::middleware([
     // DOSEN
     // ==========================================
     Route::middleware(['role:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
-        // CRUD Kelas (Teams)
+        // --- CRUD Kelas (Teams) ---
         Route::get('/classes', [\App\Http\Controllers\Dosen\ClassController::class, 'index'])->name('classes.index');
         Route::post('/classes', [\App\Http\Controllers\Dosen\ClassController::class, 'store'])->name('classes.store');
         Route::put('/classes/{team}', [\App\Http\Controllers\Dosen\ClassController::class, 'update'])->name('classes.update');
 
-        // Edit Kelas 
+        // --- Edit Kelas ---
         Route::get('/classes/{team}/manage', [\App\Http\Controllers\Dosen\ClassController::class, 'manage'])->name('classes.manage');
 
-        // Lihat Kelas
+        // --- Lihat Kelas ---
         Route::get('/classes/{team}/show', [\App\Http\Controllers\Dosen\ClassController::class, 'show'])->name('classes.show');
 
-        // Acc Mahasiswa yang masuk via kode
+        // --- Acc Mahasiswa yang masuk via kode ---
         Route::post('/classes/{team}/approve/{user_id}', [\App\Http\Controllers\Dosen\ClassController::class, 'approveStudent'])->name('classes.approve');
 
-        // CRUD Pertemuan di dalam Kelas
+        // --- CRUD Pertemuan di dalam Kelas ---
         Route::post('/classes/{team}/meetings', [\App\Http\Controllers\Dosen\MeetingController::class, 'store'])->name('meetings.store');
         Route::put('/classes/{team}/meetings/{meeting}', [\App\Http\Controllers\Dosen\MeetingController::class, 'update'])->name('meetings.update');
         Route::get('/classes/{team}/meetings/{meeting}', [\App\Http\Controllers\Dosen\MeetingController::class, 'show'])->name('meetings.show');
@@ -84,6 +84,16 @@ Route::middleware([
         Route::post('/classes/{team}/meetings/{meeting}/contents/{content}', [\App\Http\Controllers\Dosen\MeetingController::class, 'updateContent'])->name('meetings.contents.update');
         Route::delete('/classes/{team}/meetings/{meeting}/contents/{content}', [\App\Http\Controllers\Dosen\MeetingController::class, 'destroyContent'])->name('meetings.contents.destroy');
         Route::delete('/classes/{team}/meetings/{meeting}', [\App\Http\Controllers\Dosen\MeetingController::class, 'destroy'])->name('meetings.destroy');
+
+        // --- CRUD Kuis di dalam Pertemuan ---
+        Route::get('/classes/{team}/meetings/{meeting}/quiz', [\App\Http\Controllers\Dosen\QuizController::class, 'manage'])->name('meetings.quiz.manage');
+        Route::post('/classes/{team}/meetings/{meeting}/quiz', [\App\Http\Controllers\Dosen\QuizController::class, 'storeOrUpdate'])->name('meetings.quiz.store');
+        Route::post('/classes/{team}/meetings/{meeting}/quiz/{quiz}/questions', [\App\Http\Controllers\Dosen\QuizController::class, 'storeQuestion'])->name('meetings.quiz.questions.store');
+        Route::delete('/classes/{team}/meetings/{meeting}/quiz/{quiz}/questions/{question}', [\App\Http\Controllers\Dosen\QuizController::class, 'destroyQuestion'])->name('meetings.quiz.questions.destroy');
+
+        // --- Export Rekap Nilai ---
+        Route::get('/classes/{team}/export', [\App\Http\Controllers\Dosen\ClassController::class, 'exportRekap'])->name('classes.export');
+        Route::get('/classes/{team}/meetings/{meeting}/quiz/export', [\App\Http\Controllers\Dosen\QuizController::class, 'exportGrades'])->name('meetings.quiz.export');
     });
 
 
@@ -91,14 +101,16 @@ Route::middleware([
     // MAHASISWA
     // ==========================================
     Route::middleware(['role:mahasiswa'])->prefix('mahasiswa')->name('mahasiswa.')->group(function () {
-        // Dashboard utama (Lihat kelas yang diikuti)
+        // --- Dashboard utama (Daftar Kelas & Join) ---
         Route::get('/dashboard', [\App\Http\Controllers\Mahasiswa\StudentController::class, 'index'])->name('dashboard');
-
-        // Join kelas pakai kode
         Route::post('/join-class', [\App\Http\Controllers\Mahasiswa\StudentController::class, 'joinClass'])->name('join');
 
-        // Lihat isi pertemuan
+        // --- FUNGSI BARU: Lihat Detail Kelas (Progres & 16 Pertemuan) ---
+        Route::get('/classes/{team}', [\App\Http\Controllers\Mahasiswa\StudentController::class, 'showClass'])->name('classes.show');
+
+        // --- Lihat isi pertemuan (Materi, Video, Soal) ---
         Route::get('/meetings/{meeting}', [\App\Http\Controllers\Mahasiswa\StudentController::class, 'showMeeting'])->name('meetings.show');
+        Route::post('/meetings/{meeting}/quiz/{quiz}/submit', [\App\Http\Controllers\Mahasiswa\StudentController::class, 'submitQuiz'])->name('meetings.quiz.submit');
     });
 
 
@@ -106,6 +118,6 @@ Route::middleware([
     // DISKUSI
     // ==========================================
     Route::post('/meetings/{meeting}/discussions', [\App\Http\Controllers\DiscussionController::class, 'store'])->name('discussions.store');
-    Route::post('/discussions/{discussion}/replies', [\App\Http\Controllers\DiscussionController::class, 'storeReply'])->name('discussions.replies.store');
-    Route::delete('/discussions/{discussion}', [\App\Http\Controllers\DiscussionController::class, 'destroy'])->name('discussions.destroy');
+    // Route::post('/discussions/{discussion}/replies', [\App\Http\Controllers\DiscussionController::class, 'storeReply'])->name('discussions.replies.store');
+    // Route::delete('/discussions/{discussion}', [\App\Http\Controllers\DiscussionController::class, 'destroy'])->name('discussions.destroy');
 });

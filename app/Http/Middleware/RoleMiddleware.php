@@ -1,4 +1,7 @@
 <?php
+/**
+ * Middleware custom untuk membatasi akses jalur rute hanya untuk tipe role tertentu (admin, dosen, mahasiswa).
+ */
 
 namespace App\Http\Middleware;
 
@@ -9,7 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 class RoleMiddleware
 {
     /**
-     * Handle an incoming request.
+     * Memproses intersepsi (cegat) request masuk sebelum mencapai controller; validasi kecocokan role.
+     * Input: Request asal, Closure chain berikutnya, role (string target). Output: Response dilanjut/abort 403.
      */
     public function handle(Request $request, Closure $next, string $role): Response
     {

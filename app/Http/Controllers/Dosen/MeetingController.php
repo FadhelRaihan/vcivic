@@ -1,4 +1,7 @@
 <?php
+/**
+ * Controller untuk Dosen membuat dan mengelola pertemuan beserta materi/file pelajarannya di sebuah kelas.
+ */
 
 namespace App\Http\Controllers\Dosen;
 
@@ -13,6 +16,10 @@ use Illuminate\Support\Facades\Storage;
 
 class MeetingController extends Controller
 {
+    /**
+     * Menambahkan topik pertemuan baru dengan memvalidasi duplikasi pertemuan ke-N.
+     * Input: Memuat 'meeting_number', referensi Team/Kelas. Output: Kembali dengan state sukses.
+     */
     public function store(Request $request, Team $team)
     {
         $request->validate([
@@ -21,7 +28,6 @@ class MeetingController extends Controller
                 'integer',
                 'min:1',
                 'max:16',
-                // Validasi agar tidak ada nomor pertemuan yang sama di 1 kelas
                 Rule::unique('meetings')->where(function ($query) use ($team) {
                     return $query->where('team_id', $team->id);
                 })
@@ -42,7 +48,10 @@ class MeetingController extends Controller
         return back()->with('success', 'Pertemuan berhasil ditambahkan.');
     }
 
-    // FUNGSI BARU: Edit Pertemuan
+    /**
+     * Memperbarui detail (judul, angka ke-, deskripsi) pertemuan di dalam kelas Dosen.
+     * Input: Request payload dan model Team/Meeting. Output: Status perubahan berhasil.
+     */
     public function update(Request $request, Team $team, Meeting $meeting)
     {
         $request->validate([
@@ -70,6 +79,10 @@ class MeetingController extends Controller
         return back()->with('success', 'Pertemuan berhasil diperbarui.');
     }
 
+    /**
+     * Menampilkan halaman detail materi dari sebuah pertemuan beserta forum diskusi dan skor kuis-nya.
+     * Input: Entitas objek kelas (Team) dan pertemuan (Meeting). Output: Dosen/Meetings/Show View.
+     */
     public function show(Team $team, Meeting $meeting)
     {
         $meeting->load([
@@ -78,7 +91,8 @@ class MeetingController extends Controller
                 $query->oldest();
             },
             'discussions.user',
-            'discussions.parent.user'
+            // 'discussions.parent.user'
+            'quiz.studentGrades.user'
         ]);
 
         return Inertia::render('Dosen/Meetings/Show', [
@@ -87,18 +101,21 @@ class MeetingController extends Controller
         ]);
     }
 
+    /**
+     * Menambahkan lampiran konten materi (bisa berupa url, pdf, video) ke dalam aktivitas pertemuan.
+     * Input: Form konten materi. Output: Status sukses via Flash session back.
+     */
     public function storeContent(Request $request, Team $team, Meeting $meeting)
     {
         $request->validate([
             'type' => 'required|in:pdf,ppt,video,link',
             'title' => 'required|string|max:255',
             'file_url' => 'nullable|url',
-            'file_upload' => 'nullable|file|max:20480', // Maksimal upload 20MB
+            'file_upload' => 'nullable|file|max:20480',
         ]);
 
         $fileUrl = $request->file_url;
 
-        // Jika Dosen memilih Upload File Fisik
         if ($request->hasFile('file_upload')) {
             $path = $request->file('file_upload')->store('meeting_contents', 'public');
             $fileUrl = asset('storage/' . $path);
@@ -114,13 +131,20 @@ class MeetingController extends Controller
         return back()->with('success', 'Materi berhasil ditambahkan.');
     }
 
+    /**
+     * Menghapus struktur data pertemuan secara seutuhnya untuk kelas.
+     * Input: Model Team dan Meeting aktif. Output: Kembali dengan peringatan terhapus.
+     */
     public function destroy(Team $team, Meeting $meeting)
     {
         $meeting->delete();
         return back()->with('success', 'Pertemuan dihapus.');
     }
 
-    // --- FUNGSI UPDATE MATERI ---
+    /**
+     * Mengatur ulang atau memperbarui file materi jika ada unggahan jenis file terbaru.
+     * Input: Data tipe, judul, file payload, Content spesifik. Output: Notif redirect.
+     */
     public function updateContent(Request $request, Team $team, Meeting $meeting, MeetingContent $content)
     {
         $request->validate([
@@ -132,9 +156,7 @@ class MeetingController extends Controller
 
         $fileUrl = $request->file_url ?: $content->file_url;
 
-        // Jika Dosen mengunggah file baru
         if ($request->hasFile('file_upload')) {
-            // Hapus file lama jika ada di storage
             if ($content->file_url && str_contains($content->file_url, 'storage/meeting_contents')) {
                 $oldPath = str_replace(asset('storage/'), '', $content->file_url);
                 Storage::disk('public')->delete($oldPath);
@@ -152,10 +174,12 @@ class MeetingController extends Controller
         return back()->with('success', 'Materi berhasil diperbarui.');
     }
 
-    // --- FUNGSI HAPUS MATERI ---
+    /**
+     * Menghapus record dan file fisik suatu konten di direktori penyimpanan lokal public/storage.
+     * Input: Objek Model dan lampiran lokal. Output: Refresh current tab status sukses.
+     */
     public function destroyContent(Team $team, Meeting $meeting, MeetingContent $content)
     {
-        // Hapus file fisik dari storage (jika itu file upload)
         if ($content->file_url && str_contains($content->file_url, 'storage/meeting_contents')) {
             $oldPath = str_replace(asset('storage/'), '', $content->file_url);
             Storage::disk('public')->delete($oldPath);

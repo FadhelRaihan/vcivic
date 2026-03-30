@@ -1,4 +1,5 @@
 <script setup>
+// Halaman antarmuka Admin untuk mengelola pertemuan/silabus seluruh kelas secara sentralisasi.
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
@@ -26,7 +27,7 @@ const form = useForm({
     title: '',
     description: '',
 });
-
+// Mengirim permintaan pembuatan modul baru ke server lalu me-reset form setelah sukses.
 const submit = () => {
     form.post(route('admin.meetings.store'), {
         onSuccess: () => {
@@ -52,7 +53,7 @@ const editForm = useForm({
     title: '',
     description: '',
 });
-
+// Menyalin data pertemuan yang dipilih ke dalam state form edit lokal dan memunculkan pop-up modal.
 const openEditModal = (meeting) => {
     editForm.id = meeting.id;
     editForm.team_id = meeting.team_id.toString();
@@ -62,13 +63,13 @@ const openEditModal = (meeting) => {
 
     isEditModalOpen.value = true;
 };
-
+// Menyembunyikan modal pengeditan pertemuan dan membersihkan isian di dalamnya.
 const closeEditModal = () => {
     isEditModalOpen.value = false;
     editForm.reset();
     editForm.clearErrors();
 };
-
+// Memproses update data pertemuan yang sudah diubah ke backend, kemudian menutup modal jika disetujui.
 const updateSubmit = () => {
     editForm.put(route('admin.meetings.update', editForm.id), {
         onSuccess: () => {
@@ -87,12 +88,12 @@ const updateSubmit = () => {
 
 const isDeleteDialogOpen = ref(false);
 const meetingToDelete = ref(null);
-
+// Memicu trigger untuk membuka dialog alert saat user mencoba menghapus sebuah pertemuan.
 const confirmDelete = (id) => {
     meetingToDelete.value = id;
     isDeleteDialogOpen.value = true;
 };
-
+// Menjalankan permintaan penghapusan (DELETE) pertemuan sesuai ID yang akan dihapus.
 const executeDelete = () => {
     router.delete(route('admin.meetings.destroy', meetingToDelete.value), {
         onSuccess: () => {

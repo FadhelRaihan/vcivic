@@ -1,4 +1,7 @@
 <?php
+/**
+ * Model User merepresentasikan entitas sistem untuk akun Mahasiswa, Dosen, dan Admin.
+ */
 
 namespace App\Models;
 
@@ -69,7 +72,10 @@ class User extends Authenticatable
         ];
     }
 
-    // 3. TAMBAHKAN RELASI DISKUSI
+    /**
+     * Daftar postingan diskusi atau pesan forum yang dikirim oleh user ini.
+     * Input: -. Output: Relasi HasMany ke Discussion.
+     */
     public function discussions()
     {
         return $this->hasMany(Discussion::class);

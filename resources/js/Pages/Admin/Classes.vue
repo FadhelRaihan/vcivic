@@ -1,4 +1,5 @@
 <script setup>
+// Halaman Admin untuk CRUD dan manajemen data semua kelas/mata kuliah di sistem.
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
@@ -24,7 +25,7 @@ const form = useForm({
     name: '',
     user_id: '',
 });
-
+// Mengirim data form ke server untuk menyimpan entitas Kelas baru.
 const submit = () => {
     form.post(route('admin.classes.store'), {
         onSuccess: () => {
@@ -48,7 +49,7 @@ const editForm = useForm({
     name: '',
     user_id: '',
 });
-
+// Membuka jendela modal dan mengisi form sesuai spesifik kelas yang dipilih untuk diedit.
 const openEditModal = (kelas) => {
     editForm.id = kelas.id;
     editForm.name = kelas.name;
@@ -56,13 +57,13 @@ const openEditModal = (kelas) => {
 
     isEditModalOpen.value = true;
 };
-
+// Menutup jendela modal edit serta membersihkan sisa input di dalam form.
 const closeEditModal = () => {
     isEditModalOpen.value = false;
     editForm.reset();
     editForm.clearErrors();
 };
-
+// Menyimpan data pembaruan untuk kelas spesifik ke dalam sistem.
 const updateSubmit = () => {
     editForm.put(route('admin.classes.update', editForm.id), {
         onSuccess: () => {
@@ -81,12 +82,12 @@ const updateSubmit = () => {
 
 const isDeleteDialogOpen = ref(false);
 const classToDelete = ref(null);
-
+// Membuka modal dialog konfirmasi penghapusan kelas spesifik.
 const confirmDelete = (id) => {
     classToDelete.value = id;
     isDeleteDialogOpen.value = true;
 };
-
+// Mengeksekusi request DELETE ke server untuk menghapus kelas dari database.
 const executeDelete = () => {
     router.delete(route('admin.classes.destroy', classToDelete.value), {
         onSuccess: () => {
@@ -103,7 +104,7 @@ const executeDelete = () => {
         }
     });
 };
-
+// Menyalin join code (kode masuk) kelas ke papan klip desktop/device pengguna.
 const copyJoinCode = (code) => {
     navigator.clipboard.writeText(code);
     toast.info('Tersalin!', {

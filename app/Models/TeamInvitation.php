@@ -1,4 +1,7 @@
 <?php
+/**
+ * Model kustom untuk unduhan pengguna masuk ke dalam kelas berbasis Jetstream Invitation.
+ */
 
 namespace App\Models;
 
@@ -19,7 +22,8 @@ class TeamInvitation extends JetstreamTeamInvitation
     ];
 
     /**
-     * Get the team that the invitation belongs to.
+     * Relasi untuk mengambil entitas Kelas (Team) dari undangan saat ini.
+     * Input: -. Output: Relasi BelongsTo.
      */
     public function team(): BelongsTo
     {

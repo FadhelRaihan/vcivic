@@ -1,4 +1,5 @@
 <script setup>
+// Formulir Login utama untuk pengguna dengan role Mahasiswa maupun Dosen.
 import { ref } from 'vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { Head, useForm } from '@inertiajs/vue3';
@@ -16,11 +17,11 @@ const form = useForm({
 });
 
 const showPassword = ref(false);
-
+// Mengubah state untuk memperlihatkan atau menyembunyikan plain text password.
 const togglePassword = () => {
     showPassword.value = !showPassword.value;
 };
-
+// Mengirim kredensial username, password, dan jenis role ke endpoint otentikasi server.
 const submit = () => {
     if (!form.role) {
         form.setError('role', 'Silakan pilih masuk sebagai Dosen atau Mahasiswa.');

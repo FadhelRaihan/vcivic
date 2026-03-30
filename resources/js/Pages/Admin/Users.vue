@@ -1,4 +1,5 @@
 <script setup>
+// Halaman antarmuka Admin untuk penambahan, pengeditan, atau penghapusan akun Dosen dan Mahasiswa.
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
@@ -22,7 +23,7 @@ const props = defineProps({
 const form = useForm({
     name: '', email: '', password: '', role: 'mahasiswa', nim_nip: '',
 });
-
+// Mendaftarkan akun user baru (Mahasiswa/Dosen/Admin) melalui request ke server sentral.
 const submit = () => {
     form.post(route('admin.users.store'), {
         onSuccess: () => {
@@ -44,7 +45,7 @@ const isEditModalOpen = ref(false);
 const editForm = useForm({
     id: '', name: '', email: '', password: '', role: '', nim_nip: '',
 });
-
+// Membuka UI modal form edit dan mem-populate data pengguna yang diklik.
 const openEditModal = (user) => {
     editForm.id = user.id;
     editForm.name = user.username;
@@ -55,13 +56,13 @@ const openEditModal = (user) => {
 
     isEditModalOpen.value = true;
 };
-
+// Menutup layar modal edit user dan menghapus state input sementara.
 const closeEditModal = () => {
     isEditModalOpen.value = false;
     editForm.reset();
     editForm.clearErrors();
 };
-
+// Menyimpan modifikasi atribut user ke dalam database sistem admin.
 const updateSubmit = () => {
     editForm.put(route('admin.users.update', editForm.id), {
         onSuccess: () => {
@@ -80,12 +81,12 @@ const updateSubmit = () => {
 
 const isDeleteDialogOpen = ref(false);
 const userToDelete = ref(null);
-
+// Menampilkan modal konfirmasi dengan menyimpan ID pengguna sementara ke dalam referensi.
 const confirmDelete = (id) => {
     userToDelete.value = id;
     isDeleteDialogOpen.value = true;
 };
-
+// Menghapus data akun target secara permanen melalui request DELETE ke rute kontroler Admin.
 const executeDelete = () => {
     router.delete(route('admin.users.destroy', userToDelete.value), {
         onSuccess: () => {

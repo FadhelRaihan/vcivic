@@ -1,4 +1,7 @@
 <?php
+/**
+ * Middleware dasar Inertia.js untuk membagikan data data (seperti pesan flash, user login) ke komponen Vue Frontend.
+ */
 
 namespace App\Http\Middleware;
 
@@ -16,7 +19,8 @@ class HandleInertiaRequests extends Middleware
     protected $rootView = 'app';
 
     /**
-     * Determine the current asset version.
+     * Menentukan versi cache/aset saat ini agar frontend memuat ulang file JS jika ada perubahan.
+     * Input: Request objek. Output: String hash versi aset.
      */
     public function version(Request $request): ?string
     {
@@ -24,9 +28,8 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * Define the props that are shared by default.
-     *
-     * @return array<string, mixed>
+     * Tentukan dan kirim ('share') properti global apa saja yang selalu tersedia di setiap file Vue secara default.
+     * Input: Objek Request. Output: Array berisi fungsi/variabel yang disebar ke semua page inertia.
      */
     public function share(Request $request): array
     {

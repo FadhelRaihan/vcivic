@@ -1,4 +1,7 @@
 <?php
+/**
+ * Controller ini berfungsi untuk mengelola data kelas oleh admin, seperti melihat daftar kelas dan dosen terkait.
+ */
 
 namespace App\Http\Controllers\Admin;
 
@@ -11,6 +14,10 @@ use Illuminate\Support\Str;
 
 class AdminClassController extends Controller
 {
+    /**
+     * Menampilkan daftar semua kelas beserta dosen pengajarnya dengan fitur fitur pencarian.
+     * Input: Request object. Output: Inertia response (Render halaman Admin/Classes).
+     */
     public function index(Request $request)
     {
         $query = Team::with('owner')->latest();
@@ -35,6 +42,10 @@ class AdminClassController extends Controller
         ]);
     }
 
+    /**
+     * Menyimpan data kelas baru ke dalam sistem dan menghasilkan kode gabung (join code) otomatis.
+     * Input: Request form kelas. Output: Redirect dengan status sukses.
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -52,6 +63,10 @@ class AdminClassController extends Controller
         return back()->with('success', 'Kelas berhasil dibuat.');
     }
 
+    /**
+     * Memperbarui detail kelas yang sudah ada, seperti nama kelas dan dosen penanggung jawab.
+     * Input: Request dan Object Team (kelas). Output: Redirect dengan peringatan sukses.
+     */
     public function update(Request $request, Team $team)
     {
         $request->validate([
@@ -67,6 +82,10 @@ class AdminClassController extends Controller
         return back()->with('success', 'Data kelas berhasil diperbarui.');
     }
 
+    /**
+     * Menghapus spesifik kelas secara permanen dari sistem.
+     * Input: Object Team. Output: Redirect dengan status sukses.
+     */
     public function destroy(Team $team)
     {
         $team->delete();

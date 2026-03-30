@@ -1,4 +1,5 @@
 <script setup>
+// Halaman pengelolaan interaktif Dosen untuk mengedit info detail kelas, jadwal pertemuan, dan upload materi.
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
@@ -6,7 +7,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { ArrowLeft, Settings, Plus, Trash2, BookOpen, FileText, Video, Link as LinkIcon, UploadCloud, X, Pencil, Presentation } from 'lucide-vue-next';
+import { ArrowLeft, Settings, Plus, Trash2, BookOpen, FileText, Video, Link as LinkIcon, UploadCloud, X, Pencil, Presentation, ListChecks } from 'lucide-vue-next';
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
     AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -15,8 +16,8 @@ import { toast } from 'vue-sonner';
 
 const props = defineProps({ team: { type: Object, required: true } });
 
-// --- EDIT KELAS & PERTEMUAN (Tetap sama) ---
 const editClassForm = useForm({ name: props.team.name });
+// Mengirim instruksi penyimpanan pembaruan string nama kelas utama ke sisi Controller Back-End.
 const submitEditClass = () => { editClassForm.put(route('dosen.classes.update', props.team.id), { onSuccess: () => toast.success('Nama kelas diperbarui.') }); };
 
 const isMeetingModalOpen = ref(false);
@@ -24,8 +25,11 @@ const isEditMode = ref(false);
 const selectedMeetingId = ref(null);
 const meetingForm = useForm({ meeting_number: '', title: '', description: '' });
 
+// Menampilkan jendela form pop-up yang difungsikan untuk menambah pertemuan baru yang masih kosong.
 const openAddMeeting = () => { isEditMode.value = false; meetingForm.reset(); isMeetingModalOpen.value = true; };
+// Menampilkan jendela form pop-up terisi guna mengedit atribut pertemuan yang sudah ada.
 const openEditMeeting = (meeting) => { isEditMode.value = true; selectedMeetingId.value = meeting.id; meetingForm.meeting_number = meeting.meeting_number; meetingForm.title = meeting.title; meetingForm.description = meeting.description || ''; isMeetingModalOpen.value = true; };
+// Mengelompokkan logika Request untuk baik menyimpan Meeting (POST) baru maupun Update (PUT) pada mode Edit.
 const submitMeeting = () => {
     if (isEditMode.value) {
         meetingForm.put(route('dosen.meetings.update', { team: props.team.id, meeting: selectedMeetingId.value }), { onSuccess: () => { isMeetingModalOpen.value = false; toast.success('Pertemuan diperbarui.'); } });
@@ -34,13 +38,13 @@ const submitMeeting = () => {
     }
 };
 
-// --- TAMBAH & EDIT MATERI ---
 const isContentModalOpen = ref(false);
 const isEditContentMode = ref(false);
 const selectedContentId = ref(null);
 const inputMethod = ref('upload');
 const contentForm = useForm({ type: 'pdf', title: '', file_url: '', file_upload: null });
 
+// Membuka jendela form upload/link materi ke dalam pertemuan terpilih, mendeteksi jika ini adalah tindakan edit.
 const openContentModal = (meetingId, content = null) => {
     selectedMeetingId.value = meetingId;
     if (content) {
@@ -59,9 +63,9 @@ const openContentModal = (meetingId, content = null) => {
     isContentModalOpen.value = true;
 };
 
+// Menyelesaikan unggahan/edit info tautan resource lampiran materi pertemuan ke endpoint.
 const submitContent = () => {
     if (isEditContentMode.value) {
-        // Gunakan router.post manual dengan _method spoofing untuk support file upload pada edit
         router.post(route('dosen.meetings.contents.update', { team: props.team.id, meeting: selectedMeetingId.value, content: selectedContentId.value }), {
             _method: 'put',
             type: contentForm.type,
@@ -78,13 +82,15 @@ const submitContent = () => {
     }
 };
 
-// --- LOGIKA HAPUS DINAMIS (Bisa Pertemuan / Materi) ---
 const isDeleteDialogOpen = ref(false);
-const deleteType = ref(''); // 'meeting' atau 'content'
+const deleteType = ref('');
 
+// Pemanggilan pembuka modal alert bertipe penghapusan (destructive), mengeset tipe delete sebagai 'meeting'.
 const confirmDeleteMeeting = (id) => { deleteType.value = 'meeting'; selectedMeetingId.value = id; isDeleteDialogOpen.value = true; };
+// Pemanggilan pembuka modal alert bertipe penghapusan (destructive), mengeset tipe delete sebagai 'content' materi.
 const confirmDeleteContent = (meetingId, contentId) => { deleteType.value = 'content'; selectedMeetingId.value = meetingId; selectedContentId.value = contentId; isDeleteDialogOpen.value = true; };
 
+// Pengeksekusian request Delete final ke server, membedakan route target dependensi antara tabel meeting/contents.
 const executeDelete = () => {
     if (deleteType.value === 'meeting') {
         router.delete(route('dosen.meetings.destroy', { team: props.team.id, meeting: selectedMeetingId.value }), { onSuccess: () => { isDeleteDialogOpen.value = false; toast.success('Pertemuan dihapus.'); } });
@@ -93,6 +99,7 @@ const executeDelete = () => {
     }
 };
 
+// Berfungsi me-return icon komponen Vue (Lucide) spesifik sesuai identitas file extension material.
 const getIconForType = (type) => {
     if (type === 'pdf') return FileText;
     if (type === 'ppt') return Presentation;
@@ -126,7 +133,7 @@ const getIconForType = (type) => {
                 <form @submit.prevent="submitEditClass" class="p-6 flex flex-col md:flex-row gap-4 items-end">
                     <div class="w-full md:w-2/3 space-y-2"><Label>Nama Kelas</Label><Input v-model="editClassForm.name"
                             required /></div>
-                    <Button type="submit" class="bg-slate-800 text-white" :disabled="editClassForm.processing">Simpan
+                    <Button type="submit" class="bg-[#194872] hover:bg-[#194872]/90 text-white" :disabled="editClassForm.processing">Simpan
                         Nama</Button>
                 </form>
             </div>
@@ -150,7 +157,7 @@ const getIconForType = (type) => {
                                 <div class="flex items-center gap-2 mb-1">
                                     <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded">Pert.
                                         {{
-                                        meeting.meeting_number }}</span>
+                                            meeting.meeting_number }}</span>
                                     <h4 class="font-bold text-slate-800 text-lg">{{ meeting.title }}</h4>
                                 </div>
                                 <p class="text-sm text-slate-500">{{ meeting.description }}</p>
@@ -170,10 +177,18 @@ const getIconForType = (type) => {
                         <div class="bg-slate-50 p-5">
                             <div class="flex justify-between items-center mb-4">
                                 <h5 class="text-xs font-bold text-slate-500 uppercase">Materi Pertemuan</h5>
-                                <Button variant="outline" size="sm" @click="openContentModal(meeting.id)"
-                                    class="text-[#194872]">
-                                    <UploadCloud class="w-3.5 h-3.5 mr-1" /> Tambah Materi
-                                </Button>
+                                <div class="flex gap-2">
+                                    <Link
+                                        :href="route('dosen.meetings.quiz.manage', { team: team.id, meeting: meeting.id })"
+                                        class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors h-9 px-3 border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100">
+                                        <ListChecks class="w-3.5 h-3.5 mr-1" /> Kelola Kuis
+                                    </Link>
+
+                                    <Button variant="outline" size="sm" @click="openContentModal(meeting.id)"
+                                        class="text-[#194872] border-blue-200 hover:bg-blue-50">
+                                        <UploadCloud class="w-3.5 h-3.5 mr-1" /> Tambah Materi
+                                    </Button>
+                                </div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div v-for="content in meeting.contents" :key="content.id"
@@ -231,7 +246,7 @@ const getIconForType = (type) => {
                     </div>
                     <div class="flex justify-end gap-3 mt-4 pt-2">
                         <Button type="button" variant="outline" @click="isMeetingModalOpen = false">Batal</Button>
-                        <Button type="submit" class="bg-[#194872] text-white" :disabled="meetingForm.processing">Simpan
+                        <Button type="submit" class="bg-[#194872] hover:bg-[#194872]/90 text-white" :disabled="meetingForm.processing">Simpan
                             Pertemuan</Button>
                     </div>
                 </form>
@@ -276,7 +291,7 @@ const getIconForType = (type) => {
 
                     <div v-if="inputMethod === 'upload'" class="space-y-2">
                         <Label>Pilih File</Label>
-                        <Input type="file" accept=".pdf,.ppt,.pptx,.mp4"
+                        <Input type="file" class="cursor-pointer" accept=".pdf,.ppt,.pptx,.mp4"
                             @change="contentForm.file_upload = $event.target.files[0]" :required="!isEditContentMode" />
                         <p v-if="isEditContentMode" class="text-xs text-orange-500 mt-1">*Abaikan jika tidak ingin
                             mengganti
@@ -290,7 +305,7 @@ const getIconForType = (type) => {
 
                     <div class="flex justify-end gap-3 pt-4">
                         <Button type="button" variant="outline" @click="isContentModalOpen = false">Batal</Button>
-                        <Button type="submit" class="bg-[#194872] text-white" :disabled="contentForm.processing">Simpan
+                        <Button type="submit" class="bg-[#194872] hover:bg-[#194872]/90 text-white" :disabled="contentForm.processing">Simpan
                             Materi</Button>
                     </div>
                 </form>

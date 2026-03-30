@@ -1,4 +1,7 @@
 <?php
+/**
+ * Model Team (bawaan Jetstream) di-rename secara logika menjadi `Kelas` dalam sistem e-learning ini.
+ */
 
 namespace App\Models;
 
@@ -49,8 +52,24 @@ class Team extends JetstreamTeam
         ];
     }
 
+    /**
+     * Kelas ini memiliki banyak Pertemuan (Meeting) pengajaran.
+     * Input: -. Output: Relasi HasMany ke model Meeting.
+     */
     public function meetings()
     {
         return $this->hasMany(Meeting::class);
+    }
+
+    /**
+     * Daftar semua anggota mahasiswa yang bergabung dalam Kelas ini.
+     * Input: -. Output: Relasi BelongsToMany ke User melalui pivot tabel `team_user`.
+     */
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'team_user')
+                    ->withPivot(['role', 'status'])
+                    ->withTimestamps()
+                    ->as('membership');
     }
 }

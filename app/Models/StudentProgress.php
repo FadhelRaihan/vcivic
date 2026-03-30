@@ -1,4 +1,7 @@
 <?php
+/**
+ * Model untuk melacak persentase perkembangan belajar mahasiswa (saat ini belum diimplementasikan penuh).
+ */
 
 namespace App\Models;
 
