@@ -34,7 +34,7 @@ const submit = () => {
     <div class="flex justify-center items-center h-screen bg-gradient-to-t from-[#194872] to-[#1E5F93] to-white">
         <div class="flex flex-col w-[30%] px-6 py-10 bg-white rounded-2xl shadow-xl">
             <div class="flex flex-col gap-8">
-                <img src="../../../public/Logo.svg" alt="Logo" class="h-20 w-auto">
+                <img src="/Logo.svg" alt="Logo" class="h-20 w-auto">
 
                 <h2 class="text-2xl font-bold text-center mb-6">Portal Admin Vcivic</h2>
             </div>
