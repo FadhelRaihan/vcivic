@@ -6,7 +6,7 @@
 
         <title inertia>{{ config('app.name', 'Vcivic') }}</title>
 
-        <link rel="icon" type="image/x-icon" href="../../../public/favicon.ico">
+        <link rel="icon" type="image/x-icon" href="/public/favicon.ico">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
