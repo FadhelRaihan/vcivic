@@ -77,7 +77,7 @@ const adminMenus = [
                     </Button>
 
                     <Link v-if="user.role !== 'admin'" :href="route('dashboard')" class="mr-2 md:mr-6">
-                        <img src="/Logo.svg" alt="logo" class="w-20">
+                        <img src="../../../public/Logo.svg" alt="logo" class="w-20">
                     </Link>
 
                     <div class="hidden sm:block">

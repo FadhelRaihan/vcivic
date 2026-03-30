@@ -218,10 +218,6 @@ onUnmounted(() => {
                                 <iframe v-else-if="selectedContent.type === 'pdf'" :src="selectedContent.file_url"
                                     class="w-full h-full rounded-lg border-0"></iframe>
                                 <div v-else-if="selectedContent.type === 'ppt'" class="flex flex-col h-full space-y-2">
-                                    <div
-                                        class="bg-orange-50 p-3 rounded-lg text-sm text-orange-800 border border-orange-200 shrink-0">
-                                        <strong>Info:</strong> Jika PPT blank, pastikan VCivic sudah di-online-kan.
-                                    </div>
                                     <iframe
                                         :src="`https://docs.google.com/gview?url=${encodeURIComponent(selectedContent.file_url)}&embedded=true`"
                                         class="w-full flex-1 h-full rounded-lg border-0 bg-slate-100"></iframe>
