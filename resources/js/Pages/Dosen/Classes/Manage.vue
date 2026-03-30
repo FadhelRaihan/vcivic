@@ -18,7 +18,14 @@ const props = defineProps({ team: { type: Object, required: true } });
 
 const editClassForm = useForm({ name: props.team.name });
 // Mengirim instruksi penyimpanan pembaruan string nama kelas utama ke sisi Controller Back-End.
-const submitEditClass = () => { editClassForm.put(route('dosen.classes.update', props.team.id), { onSuccess: () => toast.success('Nama kelas diperbarui.') }); };
+const submitEditClass = () => {
+    editClassForm.put(route('dosen.classes.update', props.team.id), {
+        onSuccess: () => toast.success('Nama kelas diperbarui.'),
+        onError: (errors) => {
+            Object.values(errors).forEach(err => toast.error(err));
+        }
+    });
+};
 
 const isMeetingModalOpen = ref(false);
 const isEditMode = ref(false);
@@ -34,7 +41,12 @@ const submitMeeting = () => {
     if (isEditMode.value) {
         meetingForm.put(route('dosen.meetings.update', { team: props.team.id, meeting: selectedMeetingId.value }), { onSuccess: () => { isMeetingModalOpen.value = false; toast.success('Pertemuan diperbarui.'); } });
     } else {
-        meetingForm.post(route('dosen.meetings.store', props.team.id), { onSuccess: () => { isMeetingModalOpen.value = false; toast.success('Pertemuan dibuat.'); } });
+        meetingForm.post(route('dosen.meetings.store', props.team.id), {
+            onSuccess: () => { isMeetingModalOpen.value = false; toast.success('Pertemuan dibuat.'); },
+            onError: (errors) => {
+                Object.values(errors).forEach(err => toast.error(err));
+            }
+        });
     }
 };
 
@@ -66,26 +78,29 @@ const openContentModal = (meetingId, content = null) => {
 // Menyelesaikan unggahan/edit info tautan resource lampiran materi pertemuan ke endpoint.
 const submitContent = () => {
     if (isEditContentMode.value) {
-        contentForm.post(route('dosen.meetings.contents.update', { 
-            team: props.team.id, 
-            meeting: selectedMeetingId.value, 
-            content: selectedContentId.value 
+        contentForm.post(route('dosen.meetings.contents.update', {
+            team: props.team.id,
+            meeting: selectedMeetingId.value,
+            content: selectedContentId.value
         }), {
             preserveScroll: true,
-            onSuccess: () => { 
-                isContentModalOpen.value = false; 
-                toast.success('Materi diperbarui.'); 
+            onSuccess: () => {
+                isContentModalOpen.value = false;
+                toast.success('Materi diperbarui.');
             },
         });
     } else {
-        contentForm.post(route('dosen.meetings.contents.store', { 
-            team: props.team.id, 
-            meeting: selectedMeetingId.value 
+        contentForm.post(route('dosen.meetings.contents.store', {
+            team: props.team.id,
+            meeting: selectedMeetingId.value
         }), {
             preserveScroll: true,
-            onSuccess: () => { 
-                isContentModalOpen.value = false; 
-                toast.success('Materi diunggah.'); 
+            onSuccess: () => {
+                isContentModalOpen.value = false;
+                toast.success('Materi diunggah.');
+            },
+            onError: (errors) => {
+                Object.values(errors).forEach(err => toast.error(err));
             }
         });
     }
@@ -104,7 +119,11 @@ const executeDelete = () => {
     if (deleteType.value === 'meeting') {
         router.delete(route('dosen.meetings.destroy', { team: props.team.id, meeting: selectedMeetingId.value }), { onSuccess: () => { isDeleteDialogOpen.value = false; toast.success('Pertemuan dihapus.'); } });
     } else {
-        router.delete(route('dosen.meetings.contents.destroy', { team: props.team.id, meeting: selectedMeetingId.value, content: selectedContentId.value }), { onSuccess: () => { isDeleteDialogOpen.value = false; toast.success('Materi dihapus.'); } });
+        router.delete(route('dosen.meetings.contents.destroy', { team: props.team.id, meeting: selectedMeetingId.value, content: selectedContentId.value }), {
+            onSuccess: () => { isDeleteDialogOpen.value = false; toast.success('Materi dihapus.'); }, onError: (errors) => {
+                Object.values(errors).forEach(err => toast.error(err));
+            }
+        });
     }
 };
 
@@ -142,7 +161,8 @@ const getIconForType = (type) => {
                 <form @submit.prevent="submitEditClass" class="p-6 flex flex-col md:flex-row gap-4 items-end">
                     <div class="w-full md:w-2/3 space-y-2"><Label>Nama Kelas</Label><Input v-model="editClassForm.name"
                             required /></div>
-                    <Button type="submit" class="bg-[#194872] hover:bg-[#194872]/90 text-white" :disabled="editClassForm.processing">Simpan
+                    <Button type="submit" class="bg-[#194872] hover:bg-[#194872]/90 text-white"
+                        :disabled="editClassForm.processing">Simpan
                         Nama</Button>
                 </form>
             </div>
@@ -255,7 +275,8 @@ const getIconForType = (type) => {
                     </div>
                     <div class="flex justify-end gap-3 mt-4 pt-2">
                         <Button type="button" variant="outline" @click="isMeetingModalOpen = false">Batal</Button>
-                        <Button type="submit" class="bg-[#194872] hover:bg-[#194872]/90 text-white" :disabled="meetingForm.processing">Simpan
+                        <Button type="submit" class="bg-[#194872] hover:bg-[#194872]/90 text-white"
+                            :disabled="meetingForm.processing">Simpan
                             Pertemuan</Button>
                     </div>
                 </form>
@@ -314,7 +335,8 @@ const getIconForType = (type) => {
 
                     <div class="flex justify-end gap-3 pt-4">
                         <Button type="button" variant="outline" @click="isContentModalOpen = false">Batal</Button>
-                        <Button type="submit" class="bg-[#194872] hover:bg-[#194872]/90 text-white" :disabled="contentForm.processing">Simpan
+                        <Button type="submit" class="bg-[#194872] hover:bg-[#194872]/90 text-white"
+                            :disabled="contentForm.processing">Simpan
                             Materi</Button>
                     </div>
                 </form>

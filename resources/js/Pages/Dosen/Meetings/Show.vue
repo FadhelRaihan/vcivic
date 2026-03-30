@@ -100,7 +100,12 @@ const submitChat = () => {
     router.post(url, { body: messageBody }, {
         preserveScroll: true,
         preserveState: true,
-        onFinish: () => startPolling()
+        onFinish: () => startPolling(),
+        onError: (errors) => {
+            Object.values(errors).forEach(err => toast.error(err));
+            // Hapus pesan bayangan (optimistic) jika ternyata gagal terkirim ke server
+            localDiscussions.value.pop();
+        }
     });
 };
 
@@ -122,12 +127,10 @@ onMounted(() => {
     scrollToBottom();
     startPolling();
 
-    removeBeforeListener = router.on('before', () => {
-        if (pollingInterval) clearInterval(pollingInterval);
-
+    if (event.detail.visit.url.pathname !== window.location.pathname) {
         selectedContent.value = null;
         localDiscussions.value = [];
-    });
+    }
 });
 
 onUnmounted(() => {
