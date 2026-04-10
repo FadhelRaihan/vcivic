@@ -5,7 +5,7 @@ import { Head, Link, useForm, router, usePage } from '@inertiajs/vue3';
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { Button } from '@/Components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
-import { ArrowLeft, BookOpen, MessageSquare, Video, FileText, Link as LinkIcon, Trash2, Send, CornerDownRight, ClipboardList, CheckCircle, XCircle, Download } from 'lucide-vue-next';
+import { ArrowLeft, BookOpen, MessageSquare, Video, FileText, Presentation, Link as LinkIcon, Trash2, Send, CornerDownRight, ClipboardList, CheckCircle, XCircle, Download } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 
 const props = defineProps({
@@ -123,14 +123,17 @@ const startPolling = () => {
     }, 5000);
 };
 
+watch(() => props.meeting.id, (newId, oldId) => {
+    if (newId !== oldId) {
+        selectedContent.value = props.meeting.contents.length > 0 ? props.meeting.contents[0] : null;
+        localDiscussions.value = [...props.meeting.discussions];
+        scrollToBottom();
+    }
+});
+
 onMounted(() => {
     scrollToBottom();
     startPolling();
-
-    if (event.detail.visit.url.pathname !== window.location.pathname) {
-        selectedContent.value = null;
-        localDiscussions.value = [];
-    }
 });
 
 onUnmounted(() => {
@@ -198,6 +201,7 @@ onUnmounted(() => {
                                         :class="['p-1.5 rounded text-white shrink-0 mt-0.5', content.type === 'pdf' ? 'bg-red-500' : content.type === 'video' ? 'bg-blue-500' : 'bg-green-500']">
                                         <Video v-if="content.type === 'video'" class="w-3.5 h-3.5" />
                                         <FileText v-else-if="content.type === 'pdf'" class="w-3.5 h-3.5" />
+                                        <Presentation v-else-if="content.type === 'ppt'" class="w-3.5 h-3.5" />
                                         <LinkIcon v-else class="w-3.5 h-3.5" />
                                     </div>
                                     <span class="font-medium text-sm leading-tight">{{ content.title }}</span>
@@ -208,31 +212,36 @@ onUnmounted(() => {
                             </div>
                         </div>
 
-                        <div
-                            class="w-full lg:w-3/4 bg-white rounded-xl border border-slate-200 shadow-sm p-2 flex flex-col h-full min-h-0">
-                            <div v-if="selectedContent" class="w-full h-full flex flex-col min-h-0">
+                        <div v-if="selectedContent" class="w-full h-full flex flex-col min-h-0">
+
+                            <iframe
+                                v-if="selectedContent.type === 'video' && (selectedContent.file_url.includes('youtube') || selectedContent.file_url.includes('youtu.be'))"
+                                :src="getEmbedUrl(selectedContent.file_url)" class="w-full h-full rounded-lg"
+                                allowfullscreen>
+                            </iframe>
+
+                            <video v-else-if="selectedContent.type === 'video'" controls controlsList="nodownload"
+                                class="w-full h-full rounded-lg bg-black">
+                                <source :src="selectedContent.file_url" type="video/mp4">
+                                Maaf, browser Anda tidak mendukung pemutar video.
+                            </video>
+
+                            <iframe v-else-if="selectedContent.type === 'pdf'" :src="selectedContent.file_url"
+                                class="w-full h-full rounded-lg border-0"></iframe>
+
+                            <div v-else-if="selectedContent.type === 'ppt'" class="flex flex-col h-full space-y-2">
                                 <iframe
-                                    v-if="selectedContent.type === 'video' && selectedContent.file_url.includes('youtu')"
-                                    :src="getEmbedUrl(selectedContent.file_url)" class="w-full h-full rounded-lg"
-                                    allowfullscreen></iframe>
-                                <iframe v-else-if="selectedContent.type === 'pdf'" :src="selectedContent.file_url"
-                                    class="w-full h-full rounded-lg border-0"></iframe>
-                                <div v-else-if="selectedContent.type === 'ppt'" class="flex flex-col h-full space-y-2">
-                                    <iframe
-                                        :src="`https://docs.google.com/gview?url=${encodeURIComponent(selectedContent.file_url)}&embedded=true`"
-                                        class="w-full flex-1 h-full rounded-lg border-0 bg-slate-100"></iframe>
-                                    <!-- <div class="text-right shrink-0"><a :href="selectedContent.file_url" target="_blank"
-                                            class="text-sm text-blue-600 hover:underline">Download</a></div> -->
-                                </div>
-                                <div v-else
-                                    class="flex-1 flex flex-col items-center justify-center text-center bg-slate-50 rounded-lg">
-                                    <LinkIcon class="w-12 h-12 text-slate-300 mb-4" />
-                                    <h3 class="text-lg font-bold text-slate-800">Materi Tautan / File Eksternal</h3>
-                                    <a :href="selectedContent.file_url" target="_blank"
-                                        class="px-6 py-2 bg-[#194872] text-white rounded-lg hover:bg-blue-800 mt-4">Buka
-                                        di Tab
-                                        Baru</a>
-                                </div>
+                                    :src="`https://docs.google.com/gview?url=${encodeURIComponent(selectedContent.file_url)}&embedded=true`"
+                                    class="w-full flex-1 h-full rounded-lg border-0 bg-slate-100"></iframe>
+                            </div>
+
+                            <div v-else
+                                class="flex-1 flex flex-col items-center justify-center text-center bg-slate-50 rounded-lg">
+                                <LinkIcon class="w-12 h-12 text-slate-300 mb-4" />
+                                <h3 class="text-lg font-bold text-slate-800">Materi Tautan / File Eksternal</h3>
+                                <a :href="selectedContent.file_url" target="_blank"
+                                    class="px-6 py-2 bg-[#194872] text-white rounded-lg hover:bg-blue-800 mt-4">Buka
+                                    di Tab Baru</a>
                             </div>
                         </div>
                     </div>

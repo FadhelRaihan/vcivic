@@ -114,24 +114,18 @@ class MeetingController extends Controller
             'file_upload' => 'nullable|file|max:20480',
         ]);
 
-        $fileUrl = $request->file_url;
+        $fileUrl = null;
 
-        if ($request->hasFile('file_upload')) {
+        if ($request->filled('file_url')) {
+            $fileUrl = $request->file_url;
+        } elseif ($request->hasFile('file_upload')) {
             $file = $request->file('file_upload');
-            // Membuat nama file unik agar tidak bentrok
             $filename = time() . '_' . $file->getClientOriginalName();
-
-            // Simpan ke Supabase
             $path = $file->storeAs('meeting_contents', $filename, 'supabase');
 
             if ($path) {
-                // RAKIT URL PUBLIK SUPABASE (Manual & Pasti Jalan)
-                // Format: https://[PROJECT-ID].supabase.co/storage/v1/object/public/[BUCKET]/[PATH]
-
-                $endpoint = env('SUPABASE_STORAGE_ENDPOINT'); // https://id.supabase.co/storage/v1/s3
+                $endpoint = env('SUPABASE_STORAGE_ENDPOINT');
                 $bucket = env('SUPABASE_STORAGE_BUCKET');
-
-                // Ganti ujung /s3 menjadi /object/public/nama-bucket/
                 $baseUrl = str_replace('/s3', '/object/public/' . $bucket . '/', $endpoint);
                 $fileUrl = $baseUrl . $path;
             }
@@ -170,24 +164,18 @@ class MeetingController extends Controller
             'file_upload' => 'nullable|file|max:20480',
         ]);
 
-        $fileUrl = $request->file_url ?: $content->file_url;
+        $fileUrl = $content->file_url;
 
-        if ($request->hasFile('file_upload')) {
+        if ($request->filled('file_url')) {
+            $fileUrl = $request->file_url;
+        } elseif ($request->hasFile('file_upload')) {
             $file = $request->file('file_upload');
-            // Membuat nama file unik agar tidak bentrok
             $filename = time() . '_' . $file->getClientOriginalName();
-
-            // Simpan ke Supabase
             $path = $file->storeAs('meeting_contents', $filename, 'supabase');
 
             if ($path) {
-                // RAKIT URL PUBLIK SUPABASE (Manual & Pasti Jalan)
-                // Format: https://[PROJECT-ID].supabase.co/storage/v1/object/public/[BUCKET]/[PATH]
-
-                $endpoint = env('SUPABASE_STORAGE_ENDPOINT'); // https://id.supabase.co/storage/v1/s3
+                $endpoint = env('SUPABASE_STORAGE_ENDPOINT');
                 $bucket = env('SUPABASE_STORAGE_BUCKET');
-
-                // Ganti ujung /s3 menjadi /object/public/nama-bucket/
                 $baseUrl = str_replace('/s3', '/object/public/' . $bucket . '/', $endpoint);
                 $fileUrl = $baseUrl . $path;
             }

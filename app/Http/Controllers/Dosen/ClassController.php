@@ -9,6 +9,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Meeting;
+use App\Models\MeetingContent;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 
@@ -32,12 +34,30 @@ class ClassController extends Controller
     {
         $request->validate(['name' => 'required|string|max:255']);
 
-        Team::create([
+        $newTeam = Team::create([
             'user_id' => $request->user()->id,
             'name' => $request->name,
             'personal_team' => false,
             'join_code' => strtoupper(Str::random(6))
         ]);
+
+        $masterTeam = Team::where('name', 'MASTER KURIKULUM')->first();
+
+        if ($masterTeam) {
+            $masterMeetings = $masterTeam->meetings()->with('contents')->get();
+
+            foreach ($masterMeetings as $masterMeeting) {
+                $newMeeting = $masterMeeting->replicate();
+                $newMeeting->team_id = $newTeam->id;
+                $newMeeting->save();
+
+                foreach ($masterMeeting->contents as $content) {
+                    $newContent = $content->replicate();
+                    $newContent->meeting_id = $newMeeting->id;
+                    $newContent->save();
+                }
+            }
+        }
 
         return back()->with('success', 'Kelas berhasil dibuat.');
     }
