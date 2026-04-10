@@ -2,7 +2,7 @@
 // Halaman pengelolaan interaktif Dosen untuk mengedit info detail kelas, jadwal pertemuan, dan upload materi.
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -55,6 +55,16 @@ const isEditContentMode = ref(false);
 const selectedContentId = ref(null);
 const inputMethod = ref('upload');
 const contentForm = useForm({ type: 'pdf', title: '', file_url: '', file_upload: null });
+
+watch(inputMethod, (newMethod) => {
+    if (newMethod === 'link') {
+        contentForm.file_upload = null;
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput) fileInput.value = '';
+    } else if (newMethod === 'upload') {
+        contentForm.file_url = '';
+    }
+});
 
 // Membuka jendela form upload/link materi ke dalam pertemuan terpilih, mendeteksi jika ini adalah tindakan edit.
 const openContentModal = (meetingId, content = null) => {
@@ -321,7 +331,7 @@ const getIconForType = (type) => {
 
                     <div v-if="inputMethod === 'upload'" class="space-y-2">
                         <Label>Pilih File</Label>
-                        <Input type="file" class="cursor-pointer" accept=".pdf,.ppt,.pptx,.mp4"
+                        <Input id="fileInput" type="file" class="cursor-pointer" accept=".pdf,.ppt,.pptx,.mp4"
                             @change="contentForm.file_upload = $event.target.files[0]" :required="!isEditContentMode" />
                         <p v-if="isEditContentMode" class="text-xs text-orange-500 mt-1">*Abaikan jika tidak ingin
                             mengganti

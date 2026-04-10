@@ -2,18 +2,20 @@
 // Halaman dashboard bagi entitas Dosen yang memuat grid berisi daftar kelas-kelas milik mereka.
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { BookOpen, Copy, Plus, Settings, Eye, Users, X } from 'lucide-vue-next';
+import { BookOpen, Copy, Plus, Settings, Eye, Users, X, Database } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 
 const props = defineProps({
     classes: { type: Array, default: () => [] }
 });
 
-// Fungsi utilitas untuk menyalin teks random 'join code' 6 karakter demi mengundang mahasiswa.
+const masterClass = computed(() => props.classes.find(c => c.name === 'MASTER KURIKULUM'));
+const regularClasses = computed(() => props.classes.filter(c => c.name !== 'MASTER KURIKULUM'));
+
 const copyJoinCode = (code) => {
     navigator.clipboard.writeText(code);
     toast.info('Kode Tersalin!', {
@@ -26,6 +28,7 @@ const isCreateModalOpen = ref(false);
 const form = useForm({
     name: '',
 });
+
 // Mengirim trigger permintaan POST untuk membuat sebuah ruang kelas/mata kuliah baru.
 const submit = () => {
     form.post(route('dosen.classes.store'), {
@@ -48,16 +51,24 @@ const submit = () => {
         <template #header>
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <h2 class="font-semibold text-xl text-slate-800 leading-tight">Kelas Saya</h2>
-                <Button @click="isCreateModalOpen = true"
-                    class="bg-[#194872] hover:bg-[#194872]/80 text-white flex items-center gap-2">
-                    <Plus class="w-4 h-4" /> Buat Kelas Baru
-                </Button>
+
+                <div class="flex flex-col sm:flex-row items-center gap-3">
+                    <Link v-if="masterClass" :href="route('dosen.classes.manage', masterClass.id)"
+                        class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-[#194872] h-10 px-4 py-2 gap-2 shadow-sm">
+                        <Database class="w-4 h-4" /> Edit Master Kurikulum
+                    </Link>
+
+                    <Button @click="isCreateModalOpen = true"
+                        class="bg-[#194872] hover:bg-[#194872]/80 text-white flex items-center gap-2">
+                        <Plus class="w-4 h-4" /> Buat Kelas Baru
+                    </Button>
+                </div>
             </div>
         </template>
 
         <div class="max-w-7xl mx-auto">
 
-            <div v-if="classes.length === 0"
+            <div v-if="regularClasses.length === 0"
                 class="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
                 <div class="bg-blue-50 p-6 rounded-full text-[#194872] mb-4">
                     <BookOpen class="w-12 h-12" />
@@ -72,14 +83,14 @@ const submit = () => {
             </div>
 
             <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div v-for="kelas in classes" :key="kelas.id"
+                <div v-for="kelas in regularClasses" :key="kelas.id"
                     class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
 
                     <div class="h-24 bg-[#194872] p-6 relative">
                         <h3 class="text-lg font-bold text-white truncate pr-8">{{ kelas.name }}</h3>
                         <p class="text-blue-100 text-sm mt-1">Dibuat: {{ new
                             Date(kelas.created_at).toLocaleDateString('id-ID')
-                            }}</p>
+                        }}</p>
                         <div class="absolute top-6 right-6 text-white/20">
                             <BookOpen class="w-12 h-12" />
                         </div>
@@ -91,7 +102,7 @@ const submit = () => {
                         <div
                             class="flex items-center justify-between bg-slate-50 border border-slate-200 p-3 rounded-lg">
                             <span class="font-mono font-bold text-xl text-slate-800 tracking-widest">{{ kelas.join_code
-                                }}</span>
+                            }}</span>
                             <Button variant="ghost" size="icon" @click="copyJoinCode(kelas.join_code)"
                                 class="text-slate-500 hover:text-[#194872] hover:bg-blue-50">
                                 <Copy class="w-5 h-5" />
