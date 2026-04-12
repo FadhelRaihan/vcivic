@@ -38,29 +38,29 @@ const submit = () => {
 
     <Head title="Masuk" />
 
-    <div class="flex justify-center items-center h-screen bg-gradient-to-t from-[#194872] to-[#1E5F93] to-white">
-        <div class="flex flex-col w-[30%] px-6 py-10 bg-white rounded-2xl shadow-xl">
-            <div class="flex flex-col gap-8">
-                <img src="/Logo.svg" alt="Logo" class="h-20 w-auto">
+    <div class="flex justify-center items-center min-h-screen bg-gradient-to-t from-[#194872] to-[#1E5F93] to-white p-4">
+        <div class="flex flex-col w-full max-w-md lg:max-w-lg xl:max-w-[30%] px-6 sm:px-10 py-8 sm:py-10 bg-white rounded-2xl shadow-xl">
+            <div class="flex flex-col gap-6 sm:gap-8">
+                <img src="/Logo.svg" alt="Logo" class="h-16 sm:h-20 w-auto object-contain">
 
-                <h2 class="text-2xl font-bold text-center mb-6">Selamat Datang di Vcivic</h2>
+                <h2 class="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">Selamat Datang di Vcivic</h2>
             </div>
 
             <form @submit.prevent="submit">
 
-                <div class="flex gap-4 mb-2">
+                <div class="flex flex-row gap-3 sm:gap-4 mb-2">
                     <div @click="form.role = 'dosen'; form.clearErrors('role')"
-                        :class="['flex-1 items-center cursor-pointer border-2 border-[#194872]/20 p-4 rounded-2xl flex flex-col transition-all',
-                            form.role === 'dosen' ? 'border-[#194872] bg-[#194872]/20' : 'border-[#194872] hover:border-[#194872]']">
-                        <img :src="BookVector" alt="BookVector" class="h-[2rem] mb-2">
-                        <p class="text-sm text-center">Masuk Sebagai<br><b class="text-gray-800">DOSEN</b></p>
+                        :class="['flex-1 items-center justify-center cursor-pointer border-2 border-[#194872]/20 p-3 sm:p-4 rounded-2xl flex flex-col transition-all',
+                            form.role === 'dosen' ? 'border-[#194872] bg-[#194872]/20 shadow-sm' : 'border-[#194872]/30 hover:border-[#194872]']">
+                        <img :src="BookVector" alt="BookVector" class="h-[1.5rem] sm:h-[2rem] mb-2">
+                        <p class="text-xs sm:text-sm text-center">Sebagai<br><b class="text-gray-800">DOSEN</b></p>
                     </div>
 
                     <div @click="form.role = 'mahasiswa'; form.clearErrors('role')"
-                        :class="['flex-1 cursor-pointer border-2 border-[#194872]/20 p-4 rounded-2xl flex flex-col items-center transition-all',
-                            form.role === 'mahasiswa' ? 'border-[#194872] bg-[#194872]/20' : 'border-[#194872] hover:border-[#194872]']">
-                        <img :src="TogaVector" alt="TogaVector" class="h-[2rem] mb-2">
-                        <p class="text-sm text-center">Masuk Sebagai<br><b class="text-gray-800">MAHASISWA</b></p>
+                        :class="['flex-1 items-center justify-center cursor-pointer border-2 border-[#194872]/20 p-3 sm:p-4 rounded-2xl flex flex-col transition-all',
+                            form.role === 'mahasiswa' ? 'border-[#194872] bg-[#194872]/20 shadow-sm' : 'border-[#194872]/30 hover:border-[#194872]']">
+                        <img :src="TogaVector" alt="TogaVector" class="h-[1.5rem] sm:h-[2rem] mb-2">
+                        <p class="text-xs sm:text-sm text-center">Sebagai<br><b class="text-gray-800">MAHASISWA</b></p>
                     </div>
                 </div>
 

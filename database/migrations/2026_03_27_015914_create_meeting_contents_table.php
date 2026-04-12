@@ -14,7 +14,7 @@ return new class extends Migration {
         Schema::create('meeting_contents', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('meeting_id')->constrained()->cascadeOnDelete();
-            $table->enum('type', ['pdf', 'ppt', 'video']);
+            $table->enum('type', ['pdf', 'ppt', 'video', 'infografis']);
             $table->string('title');
             $table->string('file_url');
             $table->timestamps();

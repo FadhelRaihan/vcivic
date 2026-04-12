@@ -31,12 +31,12 @@ const submit = () => {
 
     <Head title="Admin Login" />
 
-    <div class="flex justify-center items-center h-screen bg-gradient-to-t from-[#194872] to-[#1E5F93] to-white">
-        <div class="flex flex-col w-[30%] px-6 py-10 bg-white rounded-2xl shadow-xl">
-            <div class="flex flex-col gap-8">
-                <img src="/Logo.svg" alt="Logo" class="h-20 w-auto">
+    <div class="flex justify-center items-center min-h-screen bg-gradient-to-t from-[#194872] to-[#1E5F93] to-white p-4">
+        <div class="flex flex-col w-full max-w-md lg:max-w-lg xl:max-w-[30%] px-6 sm:px-10 py-8 sm:py-10 bg-white rounded-2xl shadow-xl">
+            <div class="flex flex-col gap-6 sm:gap-8">
+                <img src="/Logo.svg" alt="Logo" class="h-16 sm:h-20 w-auto object-contain">
 
-                <h2 class="text-2xl font-bold text-center mb-6">Portal Admin Vcivic</h2>
+                <h2 class="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">Portal Admin Vcivic</h2>
             </div>
 
             <form @submit.prevent="submit">
