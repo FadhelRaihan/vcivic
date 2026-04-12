@@ -7,7 +7,7 @@ import { Button } from '@/Components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import {
     ArrowLeft, BookOpen, MessageSquare, Video, FileText,
-    Link as LinkIcon, Send, ClipboardList, CheckCircle2, XCircle, PlayCircle, Presentation
+    Link as LinkIcon, Send, ClipboardList, CheckCircle2, XCircle, PlayCircle, Presentation, MirrorRectangular
 } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 
@@ -119,12 +119,16 @@ onMounted(() => {
     scrollToBottom();
     startPolling();
     removeBeforeListener = router.on('before', (event) => {
-        if (event.detail.visit.preserveState) {
+        // Polling reload menuju URL halaman yang sama — izinkan lewat.
+        const isSamePage = event.detail.visit.url.pathname === window.location.pathname;
+        if (isSamePage) {
             return;
         }
-        if (pollingInterval) clearInterval(pollingInterval);
-        selectedContent.value = null;
-        localDiscussions.value = [];
+        // Navigasi ke halaman lain (termasuk logout) — hentikan polling.
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+        }
     });
 });
 onUnmounted(() => {
@@ -177,16 +181,18 @@ onUnmounted(() => {
                     <div class="flex flex-col lg:flex-row gap-6 h-full min-h-0">
                         <div
                             class="w-full lg:w-1/4 bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col h-full min-h-0">
-                            <h3 class="font-bold text-slate-800 mb-4 px-2 shrink-0">Daftar Materi</h3>
+                            <h3 class="font-bold text-slate-800 mb-4 px-2 shrink-0">Daftar Bahan Ajar</h3>
                             <div class="space-y-2 flex-1 overflow-y-auto custom-scrollbar pr-1">
                                 <button v-for="content in meeting.contents" :key="content.id"
                                     @click="selectedContent = content"
                                     :class="['w-full text-left p-3 rounded-lg flex items-start gap-3 transition-colors', selectedContent?.id === content.id ? 'bg-blue-50 border-blue-200 border text-[#194872]' : 'hover:bg-slate-50 border border-transparent text-slate-700']">
                                     <div
-                                        :class="['p-1.5 rounded text-white shrink-0 mt-0.5', content.type === 'pdf' ? 'bg-red-500' : content.type === 'ppt' ? 'bg-orange-500' : content.type === 'video' ? 'bg-blue-500' : 'bg-green-500']">
+                                        :class="['p-1.5 rounded text-white shrink-0 mt-0.5', content.type === 'pdf' ? 'bg-red-500' : content.type === 'video' ? 'bg-blue-500' : content.type === 'ppt' ? 'bg-green-500' : 'bg-yellow-500']">
                                         <Video v-if="content.type === 'video'" class="w-3.5 h-3.5" />
                                         <FileText v-else-if="content.type === 'pdf'" class="w-3.5 h-3.5" />
                                         <Presentation v-else-if="content.type === 'ppt'" class="w-3.5 h-3.5" />
+                                        <MirrorRectangular v-else-if="content.type === 'infografis'"
+                                            class="w-3.5 h-3.5" />
                                         <LinkIcon v-else class="w-3.5 h-3.5" />
                                     </div>
                                     <span class="font-medium text-sm leading-tight">{{ content.title }}</span>
@@ -197,33 +203,42 @@ onUnmounted(() => {
                             </div>
                         </div>
 
-                        <div
-                            class="w-full lg:w-3/4 bg-white rounded-xl border border-slate-200 shadow-sm p-2 flex flex-col h-full min-h-0">
-                            <div v-if="selectedContent" class="w-full h-full flex flex-col min-h-0">
+                        <div v-if="selectedContent" class="w-full h-full flex flex-col min-h-0">
+
+                            <iframe
+                                v-if="selectedContent.type === 'video' && (selectedContent.file_url.includes('youtube') || selectedContent.file_url.includes('youtu.be') || selectedContent.file_url.includes('drive.google.com'))"
+                                :src="getEmbedUrl(selectedContent.file_url)" class="w-full h-full rounded-lg"
+                                allowfullscreen allow="autoplay">
+                            </iframe>
+
+                            <video v-else-if="selectedContent.type === 'video'" controls controlsList="nodownload"
+                                class="w-full h-full rounded-lg bg-black">
+                                <source :src="selectedContent.file_url" type="video/mp4">
+                                Maaf, browser Anda tidak mendukung pemutar video.
+                            </video>
+
+                            <iframe v-else-if="selectedContent.type === 'pdf'" :src="selectedContent.file_url"
+                                class="w-full h-full rounded-lg border-0"></iframe>
+
+                            <div v-else-if="selectedContent.type === 'ppt'" class="flex flex-col h-full space-y-2">
                                 <iframe
-                                    v-if="selectedContent.type === 'video' && selectedContent.file_url.includes('youtu')"
-                                    :src="getEmbedUrl(selectedContent.file_url)" class="w-full h-full rounded-lg"
-                                    allowfullscreen></iframe>
-                                <iframe v-else-if="selectedContent.type === 'pdf'" :src="selectedContent.file_url"
-                                    class="w-full h-full rounded-lg border-0"></iframe>
-                                <div v-else-if="selectedContent.type === 'ppt'" class="flex flex-col h-full">
-                                    <iframe
-                                        :src="`https://docs.google.com/gview?url=${encodeURIComponent(selectedContent.file_url)}&embedded=true`"
-                                        class="w-full flex-1 h-full rounded-lg border-0 bg-slate-100"></iframe>
-                                </div>
-                                <div v-else
-                                    class="flex-1 flex flex-col items-center justify-center text-center bg-slate-50 rounded-lg">
-                                    <LinkIcon class="w-12 h-12 text-slate-300 mb-4" />
-                                    <h3 class="text-lg font-bold text-slate-800">Materi Eksternal</h3>
-                                    <a :href="selectedContent.file_url" target="_blank"
-                                        class="px-6 py-2 bg-[#194872] text-white rounded-lg mt-4">Buka di Tab Baru</a>
-                                </div>
-                                <div class="mt-4 shrink-0 flex justify-center">
-                                    <Button @click="activeTab = 'diskusi'" variant="outline"
-                                        class="text-[#194872] border-blue-200 hover:bg-blue-50 rounded-full px-6">
-                                        <MessageSquare class="w-4 h-4 mr-2" /> Tanya di Ruang Diskusi
-                                    </Button>
-                                </div>
+                                    :src="`https://docs.google.com/gview?url=${encodeURIComponent(selectedContent.file_url)}&embedded=true`"
+                                    class="w-full flex-1 h-full rounded-lg border-0 bg-slate-100"></iframe>
+                            </div>
+
+                            <div v-else-if="selectedContent.type === 'infografis'"
+                                class="flex flex-col h-full space-y-2">
+                                <img :src="selectedContent.file_url" alt="Infografis"
+                                    class="w-full h-full rounded-lg border-0 bg-slate-100">
+                            </div>
+
+                            <div v-else
+                                class="flex-1 flex flex-col items-center justify-center text-center bg-slate-50 rounded-lg">
+                                <LinkIcon class="w-12 h-12 text-slate-300 mb-4" />
+                                <h3 class="text-lg font-bold text-slate-800">Materi Tautan / File Eksternal</h3>
+                                <a :href="selectedContent.file_url" target="_blank"
+                                    class="px-6 py-2 bg-[#194872] text-white rounded-lg hover:bg-blue-800 mt-4">Buka
+                                    di Tab Baru</a>
                             </div>
                         </div>
                     </div>
@@ -245,14 +260,14 @@ onUnmounted(() => {
                             <template v-else v-for="(chats, date) in groupedDiscussions" :key="date">
                                 <div class="flex justify-center my-5"><span
                                         class="bg-white/80 border border-slate-200 shadow-sm text-slate-500 text-[11px] font-bold px-3 py-1.5 rounded-lg tracking-wide">{{
-                                        date }}</span></div>
+                                            date }}</span></div>
                                 <div v-for="chat in chats" :key="chat.id"
                                     :class="['flex w-full mt-2', chat.user_id === authUser.id ? 'justify-end' : 'justify-start']">
                                     <div
                                         :class="['max-w-[85%] md:max-w-[70%] flex flex-col', chat.user_id === authUser.id ? 'items-end' : 'items-start']">
                                         <span v-if="chat.user_id !== authUser.id"
                                             class="text-xs font-semibold text-slate-500 mb-1 ml-1 capitalize">{{
-                                            chat.user?.username }} <span v-if="chat.user?.role === 'dosen'"
+                                                chat.user?.username }} <span v-if="chat.user?.role === 'dosen'"
                                                 class="text-[#194872] ml-1">(Dosen)</span></span>
                                         <div
                                             :class="['relative p-3 shadow-sm', chat.user_id === authUser.id ? 'bg-[#194872] text-white rounded-2xl rounded-tr-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm', chat.is_sending ? 'opacity-70' : 'opacity-100']">
@@ -262,7 +277,9 @@ onUnmounted(() => {
                                                 :class="['text-[10px] mt-1.5 flex items-center justify-end gap-1', chat.user_id === authUser.id ? 'text-blue-200' : 'text-slate-400']">
                                                 <span>{{ new Date(chat.created_at).toLocaleTimeString('id-ID', {
                                                     hour:
-                                                    '2-digit', minute: '2-digit' }) }}</span></div>
+                                                        '2-digit', minute: '2-digit'
+                                                }) }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -331,7 +348,7 @@ onUnmounted(() => {
                                     class="bg-white border border-slate-100 p-6 rounded-xl shadow-sm">
                                     <h4 class="text-lg font-medium text-slate-800 mb-5 leading-relaxed">
                                         <span class="font-bold text-[#194872] mr-2">{{ index + 1 }}.</span> {{
-                                        question.question_text }}
+                                            question.question_text }}
                                     </h4>
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -347,7 +364,7 @@ onUnmounted(() => {
                                                 <span class="text-xs font-bold">{{ option }}</span>
                                             </div>
                                             <span class="leading-relaxed">{{ question[`option_${option.toLowerCase()}`]
-                                                }}</span>
+                                            }}</span>
                                         </button>
                                     </div>
                                 </div>
@@ -356,8 +373,8 @@ onUnmounted(() => {
                             <div
                                 class="bg-white border-t border-slate-200 p-4 shrink-0 flex justify-between items-center shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
                                 <span class="text-slate-500 font-medium">Terjawab: <strong class="text-[#194872]">{{
-                                        Object.keys(quizAnswers).length }}</strong> / {{ meeting.quiz.questions.length
-                                    }}</span>
+                                    Object.keys(quizAnswers).length }}</strong> / {{ meeting.quiz.questions.length
+                                        }}</span>
                                 <Button @click="submitQuiz"
                                     class="bg-orange-500 hover:bg-orange-600 text-white px-8 h-12 text-lg shadow-md font-bold"
                                     :disabled="quizForm.processing">

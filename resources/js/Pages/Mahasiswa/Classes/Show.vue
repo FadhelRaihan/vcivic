@@ -5,7 +5,8 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import {
     ArrowLeft, BookOpen, Presentation, PlayCircle,
-    ClipboardList, CheckCircle2, ChevronRight
+    ClipboardList, CheckCircle2, ChevronRight, MirrorRectangular,
+    MirrorRectangularIcon
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -105,7 +106,7 @@ const isQuizDone = (quizId) => {
                             </Link>
                         </div>
 
-                        <div class="grid grid-cols-4 gap-2 border-t border-slate-100 pt-4">
+                        <div class="grid grid-cols-5 gap-2 border-t border-slate-100 pt-4">
 
                             <Link v-if="hasContent(meeting, ['pdf', 'link'])"
                                 :href="route('mahasiswa.meetings.show', { meeting: meeting.id, tab: 'materi', type: 'bacaan' })"
@@ -121,7 +122,7 @@ const isQuizDone = (quizId) => {
 
                             <Link v-if="hasContent(meeting, ['ppt'])"
                                 :href="route('mahasiswa.meetings.show', { meeting: meeting.id, tab: 'materi', type: 'ppt' })"
-                                class="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
+                                class="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
                                 <Presentation class="w-6 h-6" />
                                 <span class="text-[11px] font-bold">PPT</span>
                             </Link>
@@ -141,6 +142,18 @@ const isQuizDone = (quizId) => {
                                 class="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl bg-slate-50 text-slate-300 cursor-not-allowed">
                                 <PlayCircle class="w-6 h-6" />
                                 <span class="text-[11px] font-bold">Video</span>
+                            </div>
+
+                            <Link v-if="hasContent(meeting, ['infografis'])"
+                                :href="route('mahasiswa.meetings.show', { meeting: meeting.id, tab: 'materi', type: 'infografis' })"
+                                class="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-colors">
+                                <MirrorRectangular class="w-6 h-6" />
+                                <span class="text-[11px] font-bold">Infografis</span>
+                            </Link>
+                            <div v-else
+                                class="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl bg-slate-50 text-slate-300 cursor-not-allowed">
+                                <MirrorRectangular class="w-6 h-6" />
+                                <span class="text-[11px] font-bold">Infografis</span>
                             </div>
 
                             <Link v-if="hasQuiz(meeting)"

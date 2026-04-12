@@ -108,7 +108,7 @@ class MeetingController extends Controller
     public function storeContent(Request $request, Team $team, Meeting $meeting)
     {
         $request->validate([
-            'type' => 'required|in:pdf,ppt,video,link',
+            'type' => 'required|in:pdf,ppt,video,infografis,link',
             'title' => 'required|string|max:255',
             'file_url' => 'nullable|url',
             'file_upload' => 'nullable|file|max:20480',
@@ -124,8 +124,8 @@ class MeetingController extends Controller
             $path = $file->storeAs('meeting_contents', $filename, 'supabase');
 
             if ($path) {
-                $endpoint = env('SUPABASE_STORAGE_ENDPOINT');
-                $bucket = env('SUPABASE_STORAGE_BUCKET');
+                $endpoint = config('filesystems.disks.supabase.endpoint');
+                $bucket = config('filesystems.disks.supabase.bucket');
                 $baseUrl = str_replace('/s3', '/object/public/' . $bucket . '/', $endpoint);
                 $fileUrl = $baseUrl . $path;
             }
@@ -158,7 +158,7 @@ class MeetingController extends Controller
     public function updateContent(Request $request, Team $team, Meeting $meeting, MeetingContent $content)
     {
         $request->validate([
-            'type' => 'required|in:pdf,ppt,video,link',
+            'type' => 'required|in:pdf,ppt,video,infografis,link',
             'title' => 'required|string|max:255',
             'file_url' => 'nullable|url',
             'file_upload' => 'nullable|file|max:20480',
@@ -174,8 +174,8 @@ class MeetingController extends Controller
             $path = $file->storeAs('meeting_contents', $filename, 'supabase');
 
             if ($path) {
-                $endpoint = env('SUPABASE_STORAGE_ENDPOINT');
-                $bucket = env('SUPABASE_STORAGE_BUCKET');
+                $endpoint = config('filesystems.disks.supabase.endpoint');
+                $bucket = config('filesystems.disks.supabase.bucket');
                 $baseUrl = str_replace('/s3', '/object/public/' . $bucket . '/', $endpoint);
                 $fileUrl = $baseUrl . $path;
             }

@@ -5,7 +5,7 @@ import { Head, Link, useForm, router, usePage } from '@inertiajs/vue3';
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { Button } from '@/Components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
-import { ArrowLeft, BookOpen, MessageSquare, Video, FileText, Presentation, Link as LinkIcon, Trash2, Send, CornerDownRight, ClipboardList, CheckCircle, XCircle, Download } from 'lucide-vue-next';
+import { ArrowLeft, BookOpen, MessageSquare, Video, FileText, Presentation, Link as LinkIcon, Trash2, Send, CornerDownRight, ClipboardList, CheckCircle, XCircle, Download, MirrorRectangular } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 
 const props = defineProps({
@@ -34,11 +34,22 @@ watch(activeTab, (newTab) => {
 
 const selectedContent = ref(props.meeting.contents.length > 0 ? props.meeting.contents[0] : null);
 
-// Mengkonversi format URL YouTube biasa/share menjadi link 'embed/' agar dapat diputar natively di dalam iFrame.
+// Mengkonversi format URL YouTube/Google Drive biasa menjadi link embed agar dapat diputar natively di dalam iFrame.
 const getEmbedUrl = (url) => {
     if (!url) return '';
+    // YouTube
     if (url.includes('youtube.com/watch?v=')) return url.replace('watch?v=', 'embed/');
     if (url.includes('youtu.be/')) return url.replace('youtu.be/', 'youtube.com/embed/');
+    // Google Drive: drive.google.com/file/d/{ID}/view → drive.google.com/file/d/{ID}/preview
+    if (url.includes('drive.google.com/file/d/')) {
+        const match = url.match(/\/file\/d\/([^/]+)/);
+        if (match) return `https://drive.google.com/file/d/${match[1]}/preview`;
+    }
+    // Google Drive: drive.google.com/open?id={ID}
+    if (url.includes('drive.google.com/open?id=')) {
+        const match = url.match(/open\?id=([^&]+)/);
+        if (match) return `https://drive.google.com/file/d/${match[1]}/preview`;
+    }
     return url;
 };
 
@@ -134,6 +145,18 @@ watch(() => props.meeting.id, (newId, oldId) => {
 onMounted(() => {
     scrollToBottom();
     startPolling();
+    removeBeforeListener = router.on('before', (event) => {
+        // Polling reload menuju URL halaman yang sama — izinkan lewat.
+        const isSamePage = event.detail.visit.url.pathname === window.location.pathname;
+        if (isSamePage) {
+            return;
+        }
+        // Navigasi ke halaman lain (termasuk logout) — hentikan polling.
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+        }
+    });
 });
 
 onUnmounted(() => {
@@ -198,10 +221,11 @@ onUnmounted(() => {
                                     @click="selectedContent = content"
                                     :class="['w-full text-left p-3 rounded-lg flex items-start gap-3 transition-colors', selectedContent?.id === content.id ? 'bg-blue-50 border-blue-200 border text-[#194872]' : 'hover:bg-slate-50 border border-transparent text-slate-700']">
                                     <div
-                                        :class="['p-1.5 rounded text-white shrink-0 mt-0.5', content.type === 'pdf' ? 'bg-red-500' : content.type === 'video' ? 'bg-blue-500' : 'bg-green-500']">
+                                        :class="['p-1.5 rounded text-white shrink-0 mt-0.5', content.type === 'pdf' ? 'bg-red-500' : content.type === 'video' ? 'bg-blue-500' : content.type === 'ppt' ? 'bg-green-500' : 'bg-yellow-500']">
                                         <Video v-if="content.type === 'video'" class="w-3.5 h-3.5" />
                                         <FileText v-else-if="content.type === 'pdf'" class="w-3.5 h-3.5" />
                                         <Presentation v-else-if="content.type === 'ppt'" class="w-3.5 h-3.5" />
+                                        <MirrorRectangular v-else-if="content.type === 'infografis'" class="w-3.5 h-3.5" />
                                         <LinkIcon v-else class="w-3.5 h-3.5" />
                                     </div>
                                     <span class="font-medium text-sm leading-tight">{{ content.title }}</span>
@@ -215,9 +239,9 @@ onUnmounted(() => {
                         <div v-if="selectedContent" class="w-full h-full flex flex-col min-h-0">
 
                             <iframe
-                                v-if="selectedContent.type === 'video' && (selectedContent.file_url.includes('youtube') || selectedContent.file_url.includes('youtu.be'))"
+                                v-if="selectedContent.type === 'video' && (selectedContent.file_url.includes('youtube') || selectedContent.file_url.includes('youtu.be') || selectedContent.file_url.includes('drive.google.com'))"
                                 :src="getEmbedUrl(selectedContent.file_url)" class="w-full h-full rounded-lg"
-                                allowfullscreen>
+                                allowfullscreen allow="autoplay">
                             </iframe>
 
                             <video v-else-if="selectedContent.type === 'video'" controls controlsList="nodownload"
@@ -233,6 +257,10 @@ onUnmounted(() => {
                                 <iframe
                                     :src="`https://docs.google.com/gview?url=${encodeURIComponent(selectedContent.file_url)}&embedded=true`"
                                     class="w-full flex-1 h-full rounded-lg border-0 bg-slate-100"></iframe>
+                            </div>
+
+                            <div v-else-if="selectedContent.type === 'infografis'" class="flex flex-col h-full space-y-2">
+                                <img :src="selectedContent.file_url" alt="Infografis" class="w-full h-full rounded-lg border-0 bg-slate-100">
                             </div>
 
                             <div v-else
@@ -386,7 +414,7 @@ onUnmounted(() => {
                                             <td class="px-6 py-4 font-mono">{{ grade.user?.nim_nip || '-' }}</td>
                                             <td class="px-6 py-4 font-medium text-slate-800 capitalize">{{
                                                 grade.user?.username
-                                            }}</td>
+                                                }}</td>
                                             <td class="px-6 py-4 text-center text-xs text-slate-500">{{ new
                                                 Date(grade.created_at).toLocaleString('id-ID', {
                                                     day: 'numeric',

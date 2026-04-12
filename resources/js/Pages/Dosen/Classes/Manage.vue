@@ -7,7 +7,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { ArrowLeft, Settings, Plus, Trash2, BookOpen, FileText, Video, Link as LinkIcon, UploadCloud, X, Pencil, Presentation, ListChecks } from 'lucide-vue-next';
+import { ArrowLeft, Settings, Plus, Trash2, BookOpen, FileText, Video, Link as LinkIcon, UploadCloud, X, Pencil, Presentation, ListChecks, MirrorRectangular } from 'lucide-vue-next';
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
     AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -142,6 +142,7 @@ const getIconForType = (type) => {
     if (type === 'pdf') return FileText;
     if (type === 'ppt') return Presentation;
     if (type === 'video') return Video;
+    if (type === 'infografis') return MirrorRectangular;
     return LinkIcon;
 };
 </script>
@@ -308,6 +309,7 @@ const getIconForType = (type) => {
                                 <SelectItem value="pdf">Dokumen (PDF)</SelectItem>
                                 <SelectItem value="ppt">Presentasi (PPT/PPTX)</SelectItem>
                                 <SelectItem value="video">Video</SelectItem>
+                                <SelectItem value="infografis">Infografis (PNG/JPG)</SelectItem>
                                 <SelectItem value="link">Tautan Web Biasa</SelectItem>
                             </SelectContent>
                         </Select>
@@ -331,7 +333,7 @@ const getIconForType = (type) => {
 
                     <div v-if="inputMethod === 'upload'" class="space-y-2">
                         <Label>Pilih File</Label>
-                        <Input id="fileInput" type="file" class="cursor-pointer" accept=".pdf,.ppt,.pptx,.mp4"
+                        <Input id="fileInput" type="file" class="cursor-pointer" accept=".pdf,.ppt,.pptx,.mp4,.png,.jpg,.jpeg"
                             @change="contentForm.file_upload = $event.target.files[0]" :required="!isEditContentMode" />
                         <p v-if="isEditContentMode" class="text-xs text-orange-500 mt-1">*Abaikan jika tidak ingin
                             mengganti
