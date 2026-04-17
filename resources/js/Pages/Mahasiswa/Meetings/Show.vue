@@ -33,8 +33,19 @@ const selectedContent = ref(initialContent || (props.meeting.contents.length > 0
 // Parser untuk mentransformasi teks URL YouTube standar menjadi URL Embed (iframe) yang diizinkan browser.
 const getEmbedUrl = (url) => {
     if (!url) return '';
+    // YouTube
     if (url.includes('youtube.com/watch?v=')) return url.replace('watch?v=', 'embed/');
     if (url.includes('youtu.be/')) return url.replace('youtu.be/', 'youtube.com/embed/');
+    // Google Drive: drive.google.com/file/d/{ID}/view → drive.google.com/file/d/{ID}/preview
+    if (url.includes('drive.google.com/file/d/')) {
+        const match = url.match(/\/file\/d\/([^/]+)/);
+        if (match) return `https://drive.google.com/file/d/${match[1]}/preview`;
+    }
+    // Google Drive: drive.google.com/open?id={ID}
+    if (url.includes('drive.google.com/open?id=')) {
+        const match = url.match(/open\?id=([^&]+)/);
+        if (match) return `https://drive.google.com/file/d/${match[1]}/preview`;
+    }
     return url;
 };
 
