@@ -35,10 +35,21 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            'ziggy' => fn () => [
-                ...(new Ziggy)->toArray(),
-                'location' => $request->url(),
-            ],
+            'ziggy' => function () use ($request) {
+                $user = $request->user();
+                $ziggy = (new Ziggy)->toArray();
+
+                if (!$user || $user->role !== 'admin') {
+                    $ziggy['routes'] = array_filter($ziggy['routes'], function ($name) {
+                        return !str_starts_with($name, 'admin.');
+                    }, ARRAY_FILTER_USE_KEY);
+                }
+
+                return [
+                    ...$ziggy,
+                    'location' => $request->url(),
+                ];
+            },
         ];
     }
 }
