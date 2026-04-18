@@ -13,8 +13,8 @@ const props = defineProps({
     classes: { type: Array, default: () => [] }
 });
 
-const masterClass = computed(() => props.classes.find(c => c.name === 'MASTER KURIKULUM'));
-const regularClasses = computed(() => props.classes.filter(c => c.name !== 'MASTER KURIKULUM'));
+// Logic masterClass dihapus karena sudah dikelola oleh Admin
+const regularClasses = computed(() => props.classes);
 
 const copyJoinCode = (code) => {
     navigator.clipboard.writeText(code);
@@ -24,6 +24,22 @@ const copyJoinCode = (code) => {
 };
 
 const isCreateModalOpen = ref(false);
+const isSyncModalOpen = ref(false);
+const selectedTeam = ref(null);
+
+const confirmSync = (team) => {
+    selectedTeam.value = team;
+    isSyncModalOpen.value = true;
+};
+
+const executeSync = () => {
+    router.post(route('dosen.classes.sync', selectedTeam.value.id), {}, {
+        onSuccess: () => {
+            isSyncModalOpen.value = false;
+            toast.success('Kelas Berhasil Disinkronkan');
+        }
+    });
+};
 
 const form = useForm({
     name: '',
@@ -53,11 +69,6 @@ const submit = () => {
                 <h2 class="font-semibold text-xl text-slate-800 leading-tight">Kelas Saya</h2>
 
                 <div class="flex flex-col sm:flex-row items-center gap-3">
-                    <Link v-if="masterClass" :href="route('dosen.classes.manage', masterClass.id)"
-                        class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-[#194872] h-10 px-4 py-2 gap-2 shadow-sm">
-                        <Database class="w-4 h-4" /> Edit Master Kurikulum
-                    </Link>
-
                     <Button @click="isCreateModalOpen = true"
                         class="bg-[#194872] hover:bg-[#194872]/80 text-white flex items-center gap-2">
                         <Plus class="w-4 h-4" /> Buat Kelas Baru
@@ -86,8 +97,12 @@ const submit = () => {
                 <div v-for="kelas in regularClasses" :key="kelas.id"
                     class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
 
-                    <div class="h-24 bg-[#194872] p-6 relative">
+                    <div class="h-24 bg-[#194872] px-6 py-8 relative">
                         <h3 class="text-lg font-bold text-white truncate pr-8">{{ kelas.name }}</h3>
+                        <div v-if="kelas.update_available"
+                            class="absolute top-2 left-2 flex items-center gap-1 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+                            <Settings class="w-2.5 h-2.5" /> UPDATE TERSEDIA
+                        </div>
                         <p class="text-blue-100 text-sm mt-1">Dibuat: {{ new
                             Date(kelas.created_at).toLocaleDateString('id-ID')
                         }}</p>
@@ -100,13 +115,19 @@ const submit = () => {
                         <div class="mb-2 text-sm font-medium text-slate-500 uppercase tracking-wider">Kode Akses Kelas
                         </div>
                         <div
-                            class="flex items-center justify-between bg-slate-50 border border-slate-200 p-3 rounded-lg">
-                            <span class="font-mono font-bold text-xl text-slate-800 tracking-widest">{{ kelas.join_code
+                            class="flex items-center justify-between bg-white border border-slate-200 p-2 rounded-lg">
+                            <span class="font-mono font-bold text-lg text-slate-800 tracking-widest pl-2">{{ kelas.join_code
                             }}</span>
-                            <Button variant="ghost" size="icon" @click="copyJoinCode(kelas.join_code)"
-                                class="text-slate-500 hover:text-[#194872] hover:bg-blue-50">
-                                <Copy class="w-5 h-5" />
-                            </Button>
+                            <div class="flex gap-1">
+                                <Button v-if="kelas.update_available" variant="ghost" size="icon" @click="confirmSync(kelas)"
+                                    class="text-orange-500 hover:text-orange-600 hover:bg-orange-50" title="Sinkronkan dengan Master">
+                                    <UploadCloud class="w-5 h-5" />
+                                </Button>
+                                <Button variant="ghost" size="icon" @click="copyJoinCode(kelas.join_code)"
+                                    class="text-slate-500 hover:text-[#194872] hover:bg-blue-50">
+                                    <Copy class="w-5 h-5" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
 
@@ -151,6 +172,26 @@ const submit = () => {
                         </Button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <div v-if="isSyncModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+                <div class="flex items-center gap-3 text-orange-600 mb-4">
+                    <Database class="w-8 h-8" />
+                    <h3 class="text-lg font-bold">Sinkronisasi Kurikulum</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">
+                    Materi di kelas <strong>{{ selectedTeam?.name }}</strong> akan diperbarui sesuai dengan Master Kurikulum terbaru dari Admin. 
+                    <br><br>
+                    <span class="text-red-500 font-bold uppercase">Peringatan:</span> Tindakan ini akan **menimpa (overwrite)** materi pertemuan yang ada saat ini.
+                </p>
+                <div class="flex justify-end gap-3">
+                    <Button variant="outline" @click="isSyncModalOpen = false">Batal</Button>
+                    <Button @click="executeSync" class="bg-orange-600 hover:bg-orange-700 text-white">
+                        Ya, Sinkronkan Sekarang
+                    </Button>
+                </div>
             </div>
         </div>
 

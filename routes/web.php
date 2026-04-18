@@ -50,6 +50,15 @@ Route::middleware([
         Route::put('/classes/{team}', [\App\Http\Controllers\Admin\AdminClassController::class, 'update'])->name('classes.update');
         Route::delete('/classes/{team}', [\App\Http\Controllers\Admin\AdminClassController::class, 'destroy'])->name('classes.destroy');
 
+        // --- MANAJEMEN KURIKULUM (TEMPLATE) ---
+        Route::get('/curriculum', [\App\Http\Controllers\Admin\AdminCurriculumController::class, 'manage'])->name('curriculum.manage');
+        Route::post('/curriculum/meetings', [\App\Http\Controllers\Admin\AdminCurriculumController::class, 'storeMeeting'])->name('curriculum.meetings.store');
+        Route::put('/curriculum/meetings/{meeting}', [\App\Http\Controllers\Admin\AdminCurriculumController::class, 'updateMeeting'])->name('curriculum.meetings.update');
+        Route::delete('/curriculum/meetings/{meeting}', [\App\Http\Controllers\Admin\AdminCurriculumController::class, 'destroyMeeting'])->name('curriculum.meetings.destroy');
+        Route::post('/curriculum/meetings/{meeting}/contents', [\App\Http\Controllers\Admin\AdminCurriculumController::class, 'storeContent'])->name('curriculum.meetings.contents.store');
+        Route::post('/curriculum/meetings/{meeting}/contents/{content}', [\App\Http\Controllers\Admin\AdminCurriculumController::class, 'updateContent'])->name('curriculum.meetings.contents.update');
+        Route::delete('/curriculum/meetings/{meeting}/contents/{content}', [\App\Http\Controllers\Admin\AdminCurriculumController::class, 'destroyContent'])->name('curriculum.meetings.contents.destroy');
+
         // --- MANAJEMEN PERTEMUAN ---
         Route::get('/meetings', [\App\Http\Controllers\Admin\AdminMeetingController::class, 'index'])->name('meetings.index');
         Route::post('/meetings', [\App\Http\Controllers\Admin\AdminMeetingController::class, 'store'])->name('meetings.store');
@@ -75,6 +84,9 @@ Route::middleware([
 
         // --- Acc Mahasiswa yang masuk via kode ---
         Route::post('/classes/{team}/approve/{user_id}', [\App\Http\Controllers\Dosen\ClassController::class, 'approveStudent'])->name('classes.approve');
+
+        // --- Sync dengan Master Kurikulum ---
+        Route::post('/classes/{team}/sync', [\App\Http\Controllers\Dosen\ClassController::class, 'syncWithTemplate'])->name('classes.sync');
 
         // --- CRUD Pertemuan di dalam Kelas ---
         Route::post('/classes/{team}/meetings', [\App\Http\Controllers\Dosen\MeetingController::class, 'store'])->name('meetings.store');

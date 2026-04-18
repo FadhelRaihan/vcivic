@@ -11,10 +11,12 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class Meeting extends Model
 {
     use HasUuids;
+ 
+    protected $touches = ['team'];
 
     protected $guarded = [];
 
-    protected $fillable = ['team_id', 'meeting_number', 'title', 'description'];
+    protected $fillable = ['team_id', 'meeting_number', 'title', 'description', 'template_meeting_id'];
 
     /**
      * Relasi pertemuan terkait dengan satu Kelas (Team) secara spesifik.

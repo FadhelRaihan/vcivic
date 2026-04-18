@@ -11,8 +11,10 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class MeetingContent extends Model
 {
     use HasUuids;
+ 
+    protected $touches = ['meeting'];
 
-    protected $guarded = [];
+    protected $fillable = ['meeting_id', 'type', 'file_url', 'title', 'template_content_id'];
 
     /**
      * Mendeklarasikan bahwa konten file ini dimiliki mutlak oleh suatu Pertemuan spesifik.

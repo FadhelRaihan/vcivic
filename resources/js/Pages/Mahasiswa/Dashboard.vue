@@ -2,11 +2,11 @@
 // Halaman beranda utama Mahasiswa yang menampilkan grid kartu kelas yang mereka ikuti beserta form join.
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { BookOpen, Plus, X, GraduationCap, ArrowRight, Clock, CheckCircle2 } from 'lucide-vue-next';
+import { BookOpen, Plus, X, GraduationCap, ArrowRight, Clock, CheckCircle2, Quote } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 
 const props = defineProps({
@@ -14,6 +14,33 @@ const props = defineProps({
 });
 
 const isJoinModalOpen = ref(false);
+const showMotivation = ref(false);
+const currentQuote = ref({ text: '', author: '' });
+
+const quotes = [
+    { text: "Pendidikan adalah senjata paling mematikan di dunia, karena dengan pendidikan, Anda dapat mengubah dunia.", author: "Nelson Mandela" },
+    { text: "Jangan biarkan apa yang tidak bisa Anda lakukan mengganggu apa yang bisa Anda lakukan.", author: "John Wooden" },
+    { text: "Masa depan adalah milik mereka yang percaya pada keindahan mimpi mereka.", author: "Eleanor Roosevelt" },
+    { text: "Kesuksesan bukanlah kunci kebahagiaan. Kebahagiaan adalah kunci kesuksesan.", author: "Albert Schweitzer" },
+    { text: "Satu-satunya cara untuk melakukan pekerjaan besar adalah dengan mencintai apa yang Anda lakukan.", author: "Steve Jobs" },
+    { text: "Hiduplah seolah-olah kamu akan mati besok. Belajarlah seolah-olah kamu akan hidup selamanya.", author: "Mahatma Gandhi" },
+    { text: "Kesempatan besar tidak datang setiap hari. Kerjakan apa yang ada di depanmu dengan sebaik-baiknya.", author: "Anonim" },
+    { text: "Jangan pernah berhenti belajar, karena hidup tidak pernah berhenti mengajar.", author: "Anonim" }
+];
+
+onMounted(() => {
+    const isShown = sessionStorage.getItem('motivation_shown');
+    if (!isShown) {
+        const randomIndex = Math.floor(Math.random() * quotes.length);
+        currentQuote.value = quotes[randomIndex];
+        showMotivation.value = true;
+        sessionStorage.setItem('motivation_shown', 'true');
+    }
+});
+
+onUnmounted(() => {
+    sessionStorage.removeItem('motivation_shown');
+});
 
 const form = useForm({
     join_code: '',
@@ -144,6 +171,41 @@ const submitJoin = () => {
                         </Button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Motivation Overlay -->
+        <div v-if="showMotivation" @click="showMotivation = false"
+            class="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-md transition-all duration-500 cursor-pointer animate-in fade-in">
+            <div class="max-w-2xl w-full px-6 text-center animate-in zoom-in-95 slide-in-from-bottom-10 duration-700">
+                <div class="relative group">
+                    <!-- Glass Card -->
+                    <div
+                        class="bg-white/10 backdrop-blur-xl border border-white/20 p-8 md:p-12 rounded-3xl shadow-2xl relative overflow-hidden">
+                        <!-- Decorative elements -->
+                        <div class="absolute -top-10 -left-10 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl"></div>
+                        <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl"></div>
+
+                        <div class="space-y-6 relative z-10">
+                            <Quote class="w-12 h-12 text-blue-400 mx-auto opacity-50 mb-4" />
+
+                            <h2 class="text-2xl md:text-3xl font-bold text-white leading-relaxed tracking-tight italic">
+                                "{{ currentQuote.text }}"
+                            </h2>
+
+                            <div class="flex items-center justify-center gap-4">
+                                <div class="h-[1px] w-8 bg-white/30"></div>
+                                <p class="text-blue-300 font-medium tracking-wide uppercase text-sm md:text-base">
+                                    {{ currentQuote.author }}
+                                </p>
+                                <div class="h-[1px] w-8 bg-white/30"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-white/40 text-xs mt-8 uppercase tracking-[0.2em] font-light">Ketuk di mana saja untuk
+                        melanjutkan</p>
+                </div>
             </div>
         </div>
 

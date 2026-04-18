@@ -145,9 +145,9 @@ watch(search, (value) => {
                 <form @submit.prevent="submit" class="space-y-4">
 
                     <div class="space-y-2">
-                        <Label for="name">Nama Kelas (Mata Kuliah)</Label>
+                        <Label for="name">Nama Kelas</Label>
                         <Input class="rounded-lg" id="name" type="text" v-model="form.name"
-                            placeholder="Contoh: Pemrograman Web Lanjut" required />
+                            placeholder="Contoh: Pendidikan Kewarganegaraan" required />
                         <p v-if="form.errors.name" class="text-sm text-red-500">{{ form.errors.name }}</p>
                     </div>
 
