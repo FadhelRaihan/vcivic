@@ -170,7 +170,7 @@ watch(search, (value) => {
                         <div class="col-span-2 space-y-2">
                             <Label for="title">Judul Modul</Label>
                             <Input class="rounded-lg" id="title" type="text" v-model="form.title"
-                                placeholder="Contoh: Pengenalan Vue" required />
+                                placeholder="Contoh: Pengenalan Pancasila" required />
                             <p v-if="form.errors.title" class="text-sm text-red-500">{{ form.errors.title }}</p>
                         </div>
                     </div>
@@ -179,7 +179,7 @@ watch(search, (value) => {
                         <Label for="description">Deskripsi Singkat</Label>
                         <textarea id="description" v-model="form.description" rows="3"
                             class="flex min-h-[80px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            placeholder="Opsional: Tuliskan capaian pembelajaran..."></textarea>
+                            placeholder="Opsional: Tuliskan deskripsi modul..."></textarea>
                         <p v-if="form.errors.description" class="text-sm text-red-500">{{ form.errors.description }}</p>
                     </div>
 

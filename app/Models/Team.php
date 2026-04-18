@@ -27,6 +27,8 @@ class Team extends JetstreamTeam
         'name',
         'personal_team',
         'join_code',
+        'is_template',
+        'last_synced_at',
     ];
 
     /**

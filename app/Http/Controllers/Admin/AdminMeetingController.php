@@ -19,8 +19,10 @@ class AdminMeetingController extends Controller
      */
     public function index(Request $request)
     {
-        // 1. Ambil data pertemuan beserta nama kelasnya
-        $query = Meeting::with('team')->latest();
+        // 1. Ambil data pertemuan yang bukan bagian dari template kurikulum
+        $query = Meeting::whereHas('team', function($q) {
+            $q->where('is_template', false);
+        })->with('team')->orderBy('meeting_number', 'asc');
 
         // Fitur Search
         if ($request->has('search') && $request->search != '') {
@@ -36,8 +38,8 @@ class AdminMeetingController extends Controller
 
         $meetings = $query->get();
 
-        // 2. Ambil semua kelas untuk pilihan di dropdown form Create
-        $classes = Team::orderBy('name', 'asc')->get();
+        // 2. Ambil semua kelas (kecuali template) untuk pilihan di dropdown form Create
+        $classes = Team::where('is_template', false)->orderBy('name', 'asc')->get();
 
         return Inertia::render('Admin/Meetings', [
             'meetings' => $meetings,

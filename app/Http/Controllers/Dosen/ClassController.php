@@ -23,6 +23,15 @@ class ClassController extends Controller
     public function index(Request $request)
     {
         $classes = Team::where('user_id', $request->user()->id)->latest()->get();
+
+        $masterTemplate = Team::where('is_template', true)->first();
+        $templateUpdatedAt = $masterTemplate ? $masterTemplate->updated_at : null;
+
+        $classes = $classes->map(function ($class) use ($templateUpdatedAt) {
+            $class->update_available = $templateUpdatedAt && (!$class->last_synced_at || $class->last_synced_at < $templateUpdatedAt);
+            return $class;
+        });
+
         return Inertia::render('Dosen/Classes/Index', ['classes' => $classes]);
     }
 
@@ -41,10 +50,11 @@ class ClassController extends Controller
                 'user_id' => $request->user()->id,
                 'name' => $request->name,
                 'personal_team' => false,
-                'join_code' => strtoupper(Str::random(6))
+                'join_code' => strtoupper(Str::random(6)),
+                'last_synced_at' => now(),
             ]);
 
-            $masterTeam = Team::where('name', 'MASTER KURIKULUM')->first();
+            $masterTeam = Team::where('is_template', true)->first();
 
             if ($masterTeam) {
                 $masterMeetings = $masterTeam->meetings()->with('contents')->get();
@@ -52,11 +62,13 @@ class ClassController extends Controller
                 foreach ($masterMeetings as $masterMeeting) {
                     $newMeeting = $masterMeeting->replicate();
                     $newMeeting->team_id = $newTeam->id;
+                    $newMeeting->template_meeting_id = $masterMeeting->id;
                     $newMeeting->save();
 
                     foreach ($masterMeeting->contents as $content) {
                         $newContent = $content->replicate();
                         $newContent->meeting_id = $newMeeting->id;
+                        $newContent->template_content_id = $content->id;
                         $newContent->save();
                     }
                 }
@@ -89,7 +101,13 @@ class ClassController extends Controller
      */
     public function manage(Team $team)
     {
-        $team->load(['meetings.contents']);
+        $team->load(['meetings' => function($query) {
+            $query->orderBy('meeting_number', 'asc')->with('contents');
+        }]);
+
+        $masterTemplate = Team::where('is_template', true)->first();
+        $templateUpdatedAt = $masterTemplate ? $masterTemplate->updated_at : null;
+        $team->update_available = $templateUpdatedAt && (!$team->last_synced_at || $team->last_synced_at < $templateUpdatedAt);
 
         return Inertia::render('Dosen/Classes/Manage', [
             'team' => $team
@@ -207,5 +225,64 @@ class ClassController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Sinkronisasi ulang materi kelas dengan Master Kurikulum terbaru (Optimized Delta Sync).
+     */
+    public function syncWithTemplate(Team $team)
+    {
+        set_time_limit(300);
+
+        $masterTeam = Team::where('is_template', true)->first();
+        if (!$masterTeam) return back()->with('error', 'Master Kurikulum tidak ditemukan.');
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($team, $masterTeam) {
+            $masterMeetings = $masterTeam->meetings()->with('contents')->get();
+            $masterMeetingIds = $masterMeetings->pluck('id')->toArray();
+
+            // 1. Hapus pertemuan di kelas dosen yang sudah tidak ada di master
+            $team->meetings()->whereNotNull('template_meeting_id')
+                ->whereNotIn('template_meeting_id', $masterMeetingIds)
+                ->delete();
+
+            // 2. Iterasi Master Meetings untuk Sinkronisasi
+            foreach ($masterMeetings as $masterMeeting) {
+                // Update atau Buat Pertemuan
+                $meeting = $team->meetings()->updateOrCreate(
+                    ['template_meeting_id' => $masterMeeting->id],
+                    [
+                        'meeting_number' => $masterMeeting->meeting_number,
+                        'title' => $masterMeeting->title,
+                        'description' => $masterMeeting->description,
+                    ]
+                );
+
+                // Sinkronisasi Konten materi di dalam pertemuan tersebut
+                $masterContentIds = $masterMeeting->contents->pluck('id')->toArray();
+
+                // Hapus konten yang sudah tidak ada di master untuk pertemuan ini
+                $meeting->contents()->whereNotNull('template_content_id')
+                    ->whereNotIn('template_content_id', $masterContentIds)
+                    ->delete();
+
+                // Update atau Buat Konten baru
+                foreach ($masterMeeting->contents as $masterContent) {
+                    $meeting->contents()->updateOrCreate(
+                        ['template_content_id' => $masterContent->id],
+                        [
+                            'type' => $masterContent->type,
+                            'title' => $masterContent->title,
+                            'file_url' => $masterContent->file_url,
+                        ]
+                    );
+                }
+            }
+
+            // Perbarui tanda waktu sinkronisasi terakhir di kelas Dosen
+            $team->update(['last_synced_at' => now()]);
+        });
+
+        return back()->with('success', 'Kelas berhasil disinkronkan dengan Master Kurikulum terbaru.');
     }
 }

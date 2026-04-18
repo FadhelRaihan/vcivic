@@ -137,19 +137,22 @@ watch(search, (value) => {
                 <form @submit.prevent="submit" class="space-y-4">
                     <div class="space-y-2">
                         <Label for="name">Nama Lengkap / Username</Label>
-                        <Input class="rounded-lg" id="name" type="text" v-model="form.name" required />
-                        <p v-if="form.errors.name" class="text-sm text-red-500">{{ form.errors.name }}</p>
+                        <Input class="rounded-lg" id="name" type="text" v-model="form.name" required placeholder="Nama akan digunakan sebagai Username"
+                            :class="{ 'border-red-500 focus-visible:ring-red-500': form.errors.name }" />
+                        <p v-if="form.errors.name" class="text-xs text-red-500 font-medium">{{ form.errors.name }}</p>
                     </div>
                     <div class="space-y-2">
                         <Label for="nim_nip">NIM / NIP</Label>
-                        <Input class="rounded-lg" id="nim_nip" type="text" v-model="form.nim_nip" required />
-                        <p v-if="form.errors.nim_nip" class="text-sm text-red-500">{{ form.errors.nim_nip }}</p>
+                        <Input class="rounded-lg" id="nim_nip" type="text" v-model="form.nim_nip" required placeholder="Kosongkan jika admin"
+                            :class="{ 'border-red-500 focus-visible:ring-red-500': form.errors.nim_nip }" />
+                        <p v-if="form.errors.nim_nip" class="text-xs text-red-500 font-medium">{{ form.errors.nim_nip }}
+                        </p>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <Label for="role">Role</Label>
                             <Select v-model="form.role">
-                                <SelectTrigger>
+                                <SelectTrigger :class="{ 'border-red-500 focus:ring-red-500': form.errors.role }">
                                     <SelectValue placeholder="Pilih" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -158,16 +161,23 @@ watch(search, (value) => {
                                     <SelectItem value="admin">Admin</SelectItem>
                                 </SelectContent>
                             </Select>
+                            <p v-if="form.errors.role" class="text-xs text-red-500 font-medium">{{ form.errors.role }}
+                            </p>
                         </div>
                         <div class="space-y-2">
                             <Label for="password">Password</Label>
-                            <Input class="rounded-lg" id="password" type="password" v-model="form.password" required />
+                            <Input class="rounded-lg" id="password" type="password" v-model="form.password" required placeholder="Minimal 8 karakter"
+                                :class="{ 'border-red-500 focus-visible:ring-red-500': form.errors.password }" />
+                            <p v-if="form.errors.password" class="text-xs text-red-500 font-medium">{{
+                                form.errors.password }}
+                            </p>
                         </div>
                     </div>
                     <div class="space-y-2">
                         <Label for="email">Email</Label>
-                        <Input class="rounded-lg" id="email" type="email" v-model="form.email" required />
-                        <p v-if="form.errors.email" class="text-sm text-red-500">{{ form.errors.email }}</p>
+                        <Input class="rounded-lg" id="email" type="email" v-model="form.email" required placeholder="Gunakan email aktif"
+                            :class="{ 'border-red-500 focus-visible:ring-red-500': form.errors.email }" />
+                        <p v-if="form.errors.email" class="text-xs text-red-500 font-medium">{{ form.errors.email }}</p>
                     </div>
                     <div class="pt-4">
                         <Button type="submit" class="w-full bg-[#194872] hover:bg-[#194872]/80 text-white"
@@ -254,21 +264,26 @@ watch(search, (value) => {
                 <form @submit.prevent="updateSubmit" class="p-6 space-y-4">
                     <div class="space-y-2">
                         <Label for="edit_name">Nama Lengkap / Username</Label>
-                        <Input class="rounded-lg" id="edit_name" type="text" v-model="editForm.name" required />
-                        <p v-if="editForm.errors.name" class="text-sm text-red-500">{{ editForm.errors.name }}</p>
+                        <Input class="rounded-lg" id="edit_name" type="text" v-model="editForm.name" required
+                            :class="{ 'border-red-500 focus-visible:ring-red-500': editForm.errors.name }" />
+                        <p v-if="editForm.errors.name" class="text-xs text-red-500 font-medium">{{ editForm.errors.name
+                            }}</p>
                     </div>
 
                     <div class="space-y-2">
                         <Label for="edit_nim_nip">NIM / NIP</Label>
-                        <Input class="rounded-lg" id="edit_nim_nip" type="text" v-model="editForm.nim_nip" required />
-                        <p v-if="editForm.errors.nim_nip" class="text-sm text-red-500">{{ editForm.errors.nim_nip }}</p>
+                        <Input class="rounded-lg" id="edit_nim_nip" type="text" v-model="editForm.nim_nip" required
+                            :class="{ 'border-red-500 focus-visible:ring-red-500': editForm.errors.nim_nip }" />
+                        <p v-if="editForm.errors.nim_nip" class="text-xs text-red-500 font-medium">{{
+                            editForm.errors.nim_nip }}
+                        </p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <Label for="edit_role">Peran</Label>
                             <Select v-model="editForm.role" disabled="true">
-                                <SelectTrigger>
+                                <SelectTrigger :class="{ 'border-red-500': editForm.errors.role }">
                                     <SelectValue placeholder="Pilih" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -277,21 +292,26 @@ watch(search, (value) => {
                                     <SelectItem value="admin">Admin</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <p v-if="editForm.errors.role" class="text-sm text-red-500">{{ editForm.errors.role }}</p>
+                            <p v-if="editForm.errors.role" class="text-xs text-red-500 font-medium">{{
+                                editForm.errors.role }}
+                            </p>
                         </div>
                         <div class="space-y-2">
                             <Label for="edit_password">Kata Sandi Baru</Label>
                             <Input class="rounded-lg" id="edit_password" type="password" v-model="editForm.password"
-                                placeholder="Kosongkan jika tidak perlu" />
-                            <p v-if="editForm.errors.password" class="text-sm text-red-500">{{ editForm.errors.password
-                            }}</p>
+                                placeholder="Kosongkan jika tidak perlu"
+                                :class="{ 'border-red-500 focus-visible:ring-red-500': editForm.errors.password }" />
+                            <p v-if="editForm.errors.password" class="text-xs text-red-500 font-medium">{{
+                                editForm.errors.password }}</p>
                         </div>
                     </div>
 
                     <div class="space-y-2">
                         <Label for="edit_email">Email</Label>
-                        <Input class="rounded-lg" id="edit_email" type="email" v-model="editForm.email" required />
-                        <p v-if="editForm.errors.email" class="text-sm text-red-500">{{ editForm.errors.email }}</p>
+                        <Input class="rounded-lg" id="edit_email" type="email" v-model="editForm.email" required
+                            :class="{ 'border-red-500 focus-visible:ring-red-500': editForm.errors.email }" />
+                        <p v-if="editForm.errors.email" class="text-xs text-red-500 font-medium">{{
+                            editForm.errors.email }}</p>
                     </div>
 
                     <div class="pt-4 flex justify-end gap-3">

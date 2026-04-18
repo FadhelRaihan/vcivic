@@ -20,7 +20,7 @@ class AdminClassController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Team::with('owner')->latest();
+        $query = Team::where('is_template', false)->with('owner')->latest();
 
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;

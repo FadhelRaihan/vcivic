@@ -9,7 +9,7 @@ import {
 } from '@/Components/ui/dropdown-menu';
 import {
     Menu, LogOut, ChevronDown, ShieldAlert, GraduationCap, BookOpen,
-    LayoutDashboard, Users, Presentation, X
+    LayoutDashboard, Users, Presentation, X, Database
 } from 'lucide-vue-next';
 import 'vue-sonner/style.css'
 import { Toaster } from '@/Components/ui/sonner'
@@ -27,6 +27,7 @@ const logout = () => {
 const adminMenus = [
     { name: 'Dashboard', href: route('admin.dashboard'), icon: LayoutDashboard, active: route().current('admin.dashboard') },
     { name: 'Kelola Pengguna', href: route('admin.users.index'), icon: Users, active: route().current('admin.users.*') },
+    { name: 'Master Kurikulum', href: route('admin.curriculum.manage'), icon: Database, active: route().current('admin.curriculum.*') },
     { name: 'Kelola Kelas', href: route('admin.classes.index'), icon: BookOpen, active: route().current('admin.classes.*') },
     { name: 'Kelola Pertemuan', href: route('admin.meetings.index'), icon: Presentation, active: route().current('admin.meetings.*') },
 ];

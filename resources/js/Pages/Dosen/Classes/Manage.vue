@@ -7,7 +7,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { ArrowLeft, Settings, Plus, Trash2, BookOpen, FileText, Video, Link as LinkIcon, UploadCloud, X, Pencil, Presentation, ListChecks, MirrorRectangular } from 'lucide-vue-next';
+import { ArrowLeft, Settings, Plus, Trash2, BookOpen, FileText, Video, Link as LinkIcon, UploadCloud, X, Pencil, Presentation, ListChecks, MirrorRectangular, Database } from 'lucide-vue-next';
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
     AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -23,6 +23,16 @@ const submitEditClass = () => {
         onSuccess: () => toast.success('Nama kelas diperbarui.'),
         onError: (errors) => {
             Object.values(errors).forEach(err => toast.error(err));
+        }
+    });
+};
+
+const isSyncModalOpen = ref(false);
+const executeSync = () => {
+    router.post(route('dosen.classes.sync', props.team.id), {}, {
+        onSuccess: () => {
+            isSyncModalOpen.value = false;
+            toast.success('Kelas Berhasil Disinkronkan dengan Master.');
         }
     });
 };
@@ -153,12 +163,26 @@ const getIconForType = (type) => {
 
     <AdminLayout>
         <template #header>
-            <div class="flex items-center gap-4">
-                <Link :href="route('dosen.classes.index')" class="p-2 rounded-md hover:bg-slate-100 text-slate-500">
-                    <ArrowLeft class="w-5 h-5" />
-                </Link>
-                <div>
-                    <h2 class="font-bold text-xl text-slate-800">Ruang Edit: {{ team.name }}</h2>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex flex items-center gap-4">
+                    <Link :href="route('dosen.classes.index')" class="p-2 rounded-md hover:bg-slate-100 text-slate-500">
+                        <ArrowLeft class="w-5 h-5" />
+                    </Link>
+                    <div>
+                        <h2 class="font-bold text-xl text-slate-800">Ruang Edit: {{ team.name }}</h2>
+                    </div>
+                </div>
+                <div v-if="team.update_available"
+                    class="flex items-center gap-3 bg-orange-50 border border-orange-200 p-2 px-4 rounded-lg animate-in slide-in-from-top-2">
+                    <div class="flex items-center gap-2 text-orange-700">
+                        <Database class="w-4 h-4" />
+                        <span class="text-xs font-bold uppercase tracking-wider">Update Kurikulum Tersedia</span>
+                    </div>
+                    <div class="h-4 w-[1px] bg-orange-200"></div>
+                    <button @click="isSyncModalOpen = true"
+                        class="text-xs font-semibold text-orange-600 hover:text-orange-700 underline underline-offset-2">
+                        Sinkronkan Sekarang
+                    </button>
                 </div>
             </div>
         </template>
@@ -333,7 +357,8 @@ const getIconForType = (type) => {
 
                     <div v-if="inputMethod === 'upload'" class="space-y-2">
                         <Label>Pilih File</Label>
-                        <Input id="fileInput" type="file" class="cursor-pointer" accept=".pdf,.ppt,.pptx,.mp4,.png,.jpg,.jpeg"
+                        <Input id="fileInput" type="file" class="cursor-pointer"
+                            accept=".pdf,.ppt,.pptx,.mp4,.png,.jpg,.jpeg"
                             @change="contentForm.file_upload = $event.target.files[0]" :required="!isEditContentMode" />
                         <p v-if="isEditContentMode" class="text-xs text-orange-500 mt-1">*Abaikan jika tidak ingin
                             mengganti
@@ -369,5 +394,30 @@ const getIconForType = (type) => {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+
+        <div v-if="isSyncModalOpen"
+            class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+                <div class="flex items-center gap-3 text-orange-600 mb-4">
+                    <Database class="w-8 h-8" />
+                    <h3 class="text-lg font-bold">Sinkronisasi Kurikulum</h3>
+                </div>
+                <p class="text-sm text-slate-600 mb-6">
+                    Materi di kelas <strong>{{ team.name }}</strong> akan diperbarui sesuai dengan Master Kurikulum
+                    terbaru dari
+                    Admin.
+                    <br><br>
+                    <span class="text-red-500 font-bold uppercase">Peringatan:</span> Tindakan ini akan **menimpa
+                    (overwrite)**
+                    materi pertemuan yang ada saat ini.
+                </p>
+                <div class="flex justify-end gap-3">
+                    <Button variant="outline" @click="isSyncModalOpen = false">Batal</Button>
+                    <Button @click="executeSync" class="bg-orange-600 hover:bg-orange-700 text-white">
+                        Ya, Sinkronkan Sekarang
+                    </Button>
+                </div>
+            </div>
+        </div>
     </AdminLayout>
 </template>
