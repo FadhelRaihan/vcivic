@@ -57,7 +57,7 @@ class ClassController extends Controller
             $masterTeam = Team::where('is_template', true)->first();
 
             if ($masterTeam) {
-                $masterMeetings = $masterTeam->meetings()->with('contents')->get();
+                $masterMeetings = $masterTeam->meetings()->with('contents')->orderBy('meeting_number', 'asc')->get();
 
                 foreach ($masterMeetings as $masterMeeting) {
                     $newMeeting = $masterMeeting->replicate();
@@ -121,8 +121,9 @@ class ClassController extends Controller
     public function show(Team $team)
     {
         $team->load([
-            'meetings.contents',
-            'meetings.quiz.studentGrades',
+            'meetings' => function ($query) {
+                $query->orderBy('meeting_number', 'asc')->with(['contents', 'quiz.studentGrades']);
+            },
             'users'
         ]);
 
@@ -148,7 +149,9 @@ class ClassController extends Controller
     public function exportRekap(Team $team)
     {
         $team->load([
-            'meetings.quiz.studentGrades',
+            'meetings' => function ($query) {
+                $query->orderBy('meeting_number', 'asc')->with('quiz.studentGrades');
+            },
             'users'
         ]);
 
@@ -238,7 +241,7 @@ class ClassController extends Controller
         if (!$masterTeam) return back()->with('error', 'Master Kurikulum tidak ditemukan.');
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($team, $masterTeam) {
-            $masterMeetings = $masterTeam->meetings()->with('contents')->get();
+            $masterMeetings = $masterTeam->meetings()->with('contents')->orderBy('meeting_number', 'asc')->get();
             $masterMeetingIds = $masterMeetings->pluck('id')->toArray();
 
             // 1. Hapus pertemuan di kelas dosen yang sudah tidak ada di master
