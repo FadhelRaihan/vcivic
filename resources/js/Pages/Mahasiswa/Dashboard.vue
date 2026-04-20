@@ -38,9 +38,7 @@ onMounted(() => {
     }
 });
 
-onUnmounted(() => {
-    sessionStorage.removeItem('motivation_shown');
-});
+
 
 const form = useForm({
     join_code: '',

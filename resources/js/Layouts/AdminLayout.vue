@@ -20,6 +20,7 @@ const user = page.props.auth.user;
 const isSidebarOpen = ref(false);
 // Mengeluarkan user admin dari sistem menggunakan rute logout bawaan Fortify.
 const logout = () => {
+    sessionStorage.removeItem('motivation_shown');
     router.post(route('logout'));
 };
 
