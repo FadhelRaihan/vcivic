@@ -82,6 +82,7 @@ class StudentController extends Controller
         
         $completedQuizIds = StudentGrade::where('user_id', $user->id)
             ->whereIn('quiz_id', $quizIds)
+            ->distinct()
             ->pluck('quiz_id')
             ->toArray();
 
@@ -112,14 +113,21 @@ class StudentController extends Controller
             'quiz.questions'
         ]);
 
-        $grade = null;
+        $grades = collect();
+        $highestGrade = null;
         if ($meeting->quiz) {
-            $grade = StudentGrade::where('user_id', auth()->id())->where('quiz_id', $meeting->quiz->id)->first();
+            $grades = StudentGrade::where('user_id', auth()->id())
+                ->where('quiz_id', $meeting->quiz->id)
+                ->orderBy('created_at', 'asc')
+                ->get();
+            
+            $highestGrade = $grades->sortByDesc('score')->first();
         }
 
         return Inertia::render('Mahasiswa/Meetings/Show', [
             'meeting' => $meeting,
-            'grade' => $grade
+            'grade' => $highestGrade,
+            'attempts' => $grades
         ]);
     }
 
@@ -130,8 +138,14 @@ class StudentController extends Controller
     public function submitQuiz(Request $request, Meeting $meeting, Quiz $quiz)
     {
         $request->validate(['answers' => 'required|array']);
-        $exists = StudentGrade::where('user_id', auth()->id())->where('quiz_id', $quiz->id)->exists();
-        if ($exists) return back()->with('error', 'Anda sudah mengerjakan kuis ini.');
+        
+        $attemptsCount = StudentGrade::where('user_id', auth()->id())
+            ->where('quiz_id', $quiz->id)
+            ->count();
+            
+        if ($attemptsCount >= 3) {
+            return back()->with('error', 'Anda sudah mencapai batas maksimal pengerjaan kuis ini (3 kali).');
+        }
 
         $questions = $quiz->questions;
         $totalQuestions = $questions->count();
@@ -150,6 +164,6 @@ class StudentController extends Controller
             'score' => $score
         ]);
 
-        return back()->with('success', 'Kuis berhasil diselesaikan! Nilai Anda: ' . $score);
+        return back()->with('success', 'Kuis berhasil diselesaikan! Percobaan ke-' . ($attemptsCount + 1) . '. Nilai Anda: ' . $score);
     }
 }

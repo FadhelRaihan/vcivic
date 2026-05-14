@@ -7,13 +7,14 @@ import { Button } from '@/Components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import {
     ArrowLeft, BookOpen, MessageSquare, Video, FileText,
-    Link as LinkIcon, Send, ClipboardList, CheckCircle2, XCircle, PlayCircle, Presentation, MirrorRectangular
+    Link as LinkIcon, Send, ClipboardList, CheckCircle2, XCircle, PlayCircle, Presentation, MirrorRectangular, RotateCcw
 } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 
 const props = defineProps({
     meeting: { type: Object, required: true },
-    grade: { type: Object, default: null }
+    grade: { type: Object, default: null },
+    attempts: { type: Array, default: () => [] }
 });
 
 const page = usePage();
@@ -50,12 +51,20 @@ const getEmbedUrl = (url) => {
 };
 
 const quizAnswers = ref({});
+const isRetrying = ref(false);
 const quizForm = useForm({
     answers: {}
 });
-// Menyimpan string pilihan ganda (A/B/C/D) secara lokal ke memori ref. Mencegah klik jika kuis sudah dinilai.
+
+// Fungsi memulai pengerjaan ulang kuis untuk percobaan berikutnya.
+const startQuizAttempt = () => {
+    quizAnswers.value = {};
+    isRetrying.value = true;
+};
+
+// Menyimpan string pilihan ganda (A/B/C/D) secara lokal ke memori ref. Mencegah klik jika kuis sudah dinilai dan tidak retrying.
 const selectAnswer = (questionId, option) => {
-    if (props.grade) return;
+    if (props.grade && !isRetrying.value) return;
     quizAnswers.value[questionId] = option;
 };
 // Memvalidasi jumlah butir jawaban terisi; lalu mem-POST array payload ke endpoint grader penilaian backend.
@@ -68,7 +77,10 @@ const submitQuiz = () => {
     quizForm.answers = quizAnswers.value;
     quizForm.post(route('mahasiswa.meetings.quiz.submit', { meeting: props.meeting.id, quiz: props.meeting.quiz.id }), {
         preserveScroll: true,
-        onSuccess: () => toast.success('Kuis Selesai!', { description: 'Jawaban Anda berhasil dikirim dan dinilai.' })
+        onSuccess: () => {
+            toast.success('Kuis Selesai!', { description: 'Jawaban Anda berhasil dikirim dan dinilai.' });
+            isRetrying.value = false;
+        }
     });
 };
 
@@ -324,11 +336,12 @@ onUnmounted(() => {
                             <p class="text-slate-500 mt-2">Dosen belum membuat kuis untuk pertemuan ini.</p>
                         </div>
 
-                        <div v-else-if="grade"
-                            class="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-white to-slate-50">
+                        <div v-else-if="grade && !isRetrying"
+                            class="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-white to-slate-50 overflow-y-auto custom-scrollbar">
                             <h2 class="text-2xl font-bold text-slate-800 mb-2">Hasil Evaluasi Kuis</h2>
                             <p class="text-slate-500 mb-8">{{ meeting.quiz.title }}</p>
 
+                            <p class="text-[10px] font-black tracking-wider text-slate-400 uppercase mb-2">Nilai Terbaik Anda</p>
                             <div class="w-48 h-48 bg-white p-2 rounded-full shadow-lg border-2 flex items-center justify-center flex-col mb-6"
                                 :class="grade.score >= meeting.quiz.passing_grade ? 'border-green-400' : 'border-red-400'">
                                 <span class="text-2xl font-black"
@@ -343,15 +356,50 @@ onUnmounted(() => {
                                 <XCircle v-else class="w-6 h-6" />
                                 {{ grade.score >= meeting.quiz.passing_grade ? 'Lulus KKM' : 'Perlu Remedial' }}
                             </div>
-                            <p class="text-sm text-slate-400 mt-4">KKM: {{ meeting.quiz.passing_grade }}</p>
+                            <p class="text-sm text-slate-400 mt-4 mb-6">KKM: {{ meeting.quiz.passing_grade }}</p>
+
+                            <div class="w-full max-w-md border-t border-slate-200 pt-6 text-left">
+                                <h4 class="text-sm font-bold text-slate-700 mb-3">Riwayat Percobaan ({{ attempts.length }}/3)</h4>
+                                <div class="space-y-2 mb-6">
+                                    <div v-for="(attempt, idx) in attempts" :key="attempt.id" 
+                                        class="flex justify-between items-center px-4 py-3 bg-white rounded-xl border border-slate-150 shadow-sm text-sm">
+                                        <div class="flex flex-col">
+                                            <span class="text-slate-700 font-semibold">Percobaan ke-{{ idx + 1 }}</span>
+                                            <span class="text-[10px] text-slate-400 font-mono mt-0.5">
+                                                {{ new Date(attempt.created_at).toLocaleString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'}) }}
+                                            </span>
+                                        </div>
+                                        <span class="text-base font-bold" :class="attempt.score >= meeting.quiz.passing_grade ? 'text-green-600' : 'text-red-500'">
+                                            {{ attempt.score }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <Button v-if="attempts.length < 3" @click="startQuizAttempt" 
+                                    class="mt-2 w-full bg-[#194872] hover:bg-[#194872]/90 text-white font-bold py-6 text-base flex items-center justify-center gap-2 shadow-md rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99]">
+                                    <RotateCcw class="w-5 h-5" />
+                                    Kerjakan Ulang Kuis ({{ 3 - attempts.length }} Sisa)
+                                </Button>
+                                <div v-else class="mt-2 bg-slate-100 rounded-xl p-4 border border-slate-200 text-center">
+                                    <p class="text-sm font-bold text-slate-600">Batas Maksimal Pengerjaan Tercapai</p>
+                                    <p class="text-xs text-slate-400 mt-1">Anda telah menyelesaikan kuis ini sebanyak 3 kali.</p>
+                                </div>
+                            </div>
                         </div>
 
                         <div v-else class="flex flex-col h-full min-h-0">
-                            <div class="bg-[#194872] text-white p-6 shrink-0">
-                                <h3 class="font-bold text-xl">{{ meeting.quiz.title }}</h3>
-                                <p class="text-blue-200 text-sm mt-1">Jawablah {{ meeting.quiz.questions.length }}
-                                    pertanyaan
-                                    berikut dengan benar.</p>
+                            <div class="bg-[#194872] text-white p-6 shrink-0 relative overflow-hidden">
+                                <div class="relative z-10">
+                                    <h3 class="font-bold text-xl">{{ meeting.quiz.title }}</h3>
+                                    <p class="text-blue-200 text-sm mt-1">Jawablah {{ meeting.quiz.questions.length }}
+                                        pertanyaan
+                                        berikut dengan benar.</p>
+                                    
+                                    <div v-if="attempts.length > 0" class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-orange-500/30 border border-orange-400/40 rounded-full text-xs text-orange-100 font-bold backdrop-blur-sm">
+                                        <RotateCcw class="w-3.5 h-3.5 animate-spin" style="animation-duration: 3s" />
+                                        <span>Pengerjaan Ulang — Percobaan ke-{{ attempts.length + 1 }} dari 3</span>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">

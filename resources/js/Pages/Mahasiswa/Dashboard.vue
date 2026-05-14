@@ -24,8 +24,7 @@ const quotes = [
     { text: "Kesuksesan bukanlah kunci kebahagiaan. Kebahagiaan adalah kunci kesuksesan.", author: "Albert Schweitzer" },
     { text: "Satu-satunya cara untuk melakukan pekerjaan besar adalah dengan mencintai apa yang Anda lakukan.", author: "Steve Jobs" },
     { text: "Hiduplah seolah-olah kamu akan mati besok. Belajarlah seolah-olah kamu akan hidup selamanya.", author: "Mahatma Gandhi" },
-    { text: "Kesempatan besar tidak datang setiap hari. Kerjakan apa yang ada di depanmu dengan sebaik-baiknya.", author: "Anonim" },
-    { text: "Jangan pernah berhenti belajar, karena hidup tidak pernah berhenti mengajar.", author: "Anonim" }
+    { text: "Belajarlah! Karena ilmu bagaikan perhiasan bagi pemiliknya, juga keutamaan dan tanda bagi setiap sesuatu yang terpuji. Jadilah dirimu dapat mengambil faedah dari ilmu setiap harinya, dan berenanglah dalam lautan kemanfaatan.", author: "Az-Zarnuji, Ta'limul Muta'allim" },
 ];
 
 onMounted(() => {

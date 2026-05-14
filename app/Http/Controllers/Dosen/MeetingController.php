@@ -95,6 +95,15 @@ class MeetingController extends Controller
             'quiz.studentGrades.user'
         ]);
 
+        if ($meeting->quiz) {
+            $highestGrades = $meeting->quiz->studentGrades
+                ->sortByDesc('score')
+                ->unique('user_id')
+                ->values();
+                
+            $meeting->quiz->setRelation('studentGrades', $highestGrades);
+        }
+
         return Inertia::render('Dosen/Meetings/Show', [
             'team' => $team,
             'meeting' => $meeting

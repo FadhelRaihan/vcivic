@@ -92,7 +92,7 @@ class QuizController extends Controller
         $meeting->load(['quiz.studentGrades.user']);
         
         $quiz = $meeting->quiz;
-        $grades = $quiz ? $quiz->studentGrades : collect([]);
+        $grades = $quiz ? $quiz->studentGrades->sortByDesc('score')->unique('user_id')->values() : collect([]);
 
         $fileName = 'Nilai_Kuis_Pertemuan_' . $meeting->meeting_number . '_' . Str::slug($team->name) . '_' . date('Ymd') . '.xls';
 

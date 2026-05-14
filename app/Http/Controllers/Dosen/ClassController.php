@@ -127,6 +127,18 @@ class ClassController extends Controller
             'users'
         ]);
 
+        // Pastikan hanya mengambil nilai tertinggi untuk ditampilkan di matriks dashboard
+        $team->meetings->each(function ($meeting) {
+            if ($meeting->quiz) {
+                $highestGrades = $meeting->quiz->studentGrades
+                    ->sortByDesc('score')
+                    ->unique('user_id')
+                    ->values();
+                
+                $meeting->quiz->setRelation('studentGrades', $highestGrades);
+            }
+        });
+
         return Inertia::render('Dosen/Classes/Show', [
             'team' => $team
         ]);
@@ -205,7 +217,7 @@ class ClassController extends Controller
                 foreach ($team->meetings as $meeting) {
                     if ($meeting->quiz) {
                         $totalQuizzes++;
-                        $grade = $meeting->quiz->studentGrades->where('user_id', $student->id)->first();
+                        $grade = $meeting->quiz->studentGrades->where('user_id', $student->id)->sortByDesc('score')->first();
                         if ($grade) {
                             echo '<td style="text-align: center; border: 1px solid #000000;">' . $grade->score . '</td>';
                             $totalScore += $grade->score;
