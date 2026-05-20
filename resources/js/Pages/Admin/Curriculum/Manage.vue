@@ -2,7 +2,7 @@
 // Halaman pengelolaan interaktif Admin untuk mengedit Master Kurikulum (template).
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -40,7 +40,24 @@ const submitMeeting = () => {
 const isContentModalOpen = ref(false);
 const isEditContentMode = ref(false);
 const selectedContentId = ref(null);
-const contentForm = useForm({ type: 'text', title: '', content: '' });
+const inputMethod = ref('upload');
+const contentForm = useForm({ type: 'text', title: '', file_url: '', file_upload: null, content: '' });
+
+watch(inputMethod, (newMethod) => {
+    if (newMethod === 'link') {
+        contentForm.file_upload = null;
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput) fileInput.value = '';
+    } else if (newMethod === 'upload') {
+        contentForm.file_url = '';
+    }
+});
+
+watch(() => contentForm.type, (newType) => {
+    if (newType === 'link' || newType === 'text') {
+        inputMethod.value = 'link';
+    }
+});
 
 const openContentModal = (meetingId, content = null) => {
     selectedMeetingId.value = meetingId;
@@ -49,17 +66,31 @@ const openContentModal = (meetingId, content = null) => {
         selectedContentId.value = content.id;
         contentForm.type = content.type;
         contentForm.title = content.title;
-        contentForm.content = content.content;
+        if (content.type === 'text') {
+            contentForm.file_url = content.file_url || '';
+            contentForm.content = content.file_url || '';
+            inputMethod.value = 'link';
+        } else {
+            inputMethod.value = content.file_url?.includes('storage') || content.file_url?.includes('supabase') ? 'upload' : 'link';
+            contentForm.file_url = inputMethod.value === 'link' ? content.file_url : '';
+            contentForm.content = '';
+        }
+        contentForm.file_upload = null;
     } else {
         isEditContentMode.value = false;
         contentForm.reset();
+        inputMethod.value = 'upload';
     }
     isContentModalOpen.value = true;
 };
 
 const submitContent = () => {
+    if (contentForm.type === 'text') {
+        contentForm.content = contentForm.file_url;
+    }
+
     if (isEditContentMode.value) {
-        contentForm.post(route('admin.curriculum.meetings.contents.update', selectedContentId.value), {
+        contentForm.post(route('admin.curriculum.meetings.contents.update', { meeting: selectedMeetingId.value, content: selectedContentId.value }), {
             preserveScroll: true,
             onSuccess: () => {
                 isContentModalOpen.value = false;
@@ -90,7 +121,7 @@ const executeDelete = () => {
     if (deleteType.value === 'meeting') {
         router.delete(route('admin.curriculum.meetings.destroy', selectedMeetingId.value), { onSuccess: () => { isDeleteDialogOpen.value = false; toast.success('Pertemuan Master dihapus.'); } });
     } else {
-        router.delete(route('admin.curriculum.meetings.contents.destroy', selectedContentId.value), {
+        router.delete(route('admin.curriculum.meetings.contents.destroy', { meeting: selectedMeetingId.value, content: selectedContentId.value }), {
             onSuccess: () => { isDeleteDialogOpen.value = false; toast.success('Materi Master dihapus.'); },
             onError: (errors) => {
                 Object.values(errors).forEach(err => toast.error(err));
@@ -248,10 +279,11 @@ const getIconForType = (type) => {
                             </SelectTrigger>
                             <SelectContent class="z-[200]">
                                 <SelectItem value="text">Teks Deskripsi</SelectItem>
-                                <SelectItem value="video">Link Video (YouTube/Drive)</SelectItem>
-                                <SelectItem value="pdf">Link Dokumen (PDF)</SelectItem>
+                                <SelectItem value="pdf">Dokumen (PDF)</SelectItem>
+                                <SelectItem value="ppt">Presentasi (PPT/PPTX)</SelectItem>
+                                <SelectItem value="video">Video</SelectItem>
+                                <SelectItem value="infografis">Infografis (PNG/JPG)</SelectItem>
                                 <SelectItem value="link">Tautan Web</SelectItem>
-                                <SelectItem value="infografis">Link Gambar/Infografis</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -259,12 +291,39 @@ const getIconForType = (type) => {
                         <Label>Judul Materi</Label>
                         <Input type="text" v-model="contentForm.title" placeholder="Contoh: Video Tutorial pengerjaan" required />
                     </div>
-                    <div class="space-y-2">
-                        <Label>Isi / Tautan URL</Label>
-                        <textarea v-model="contentForm.content" rows="4" required
-                            class="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#194872]"></textarea>
-                        <p class="text-[10px] text-slate-400 italic">Masukkan teks materi atau tempelkan URL (https://...) sesuai tipe yang dipilih.</p>
+
+                    <div v-if="contentForm.type !== 'text' && contentForm.type !== 'link'" class="space-y-2 relative">
+                        <Label>Metode Input</Label>
+                        <Select v-model="inputMethod">
+                            <SelectTrigger>
+                                <SelectValue placeholder="Pilih" />
+                            </SelectTrigger>
+                            <SelectContent class="z-[200]">
+                                <SelectItem value="upload">Upload File Fisik</SelectItem>
+                                <SelectItem value="link">Gunakan Tautan (URL)</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
+
+                    <div v-if="contentForm.type === 'text'" class="space-y-2">
+                        <Label>Isi Teks Deskripsi</Label>
+                        <textarea v-model="contentForm.file_url" rows="4" required
+                            class="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#194872]"></textarea>
+                    </div>
+
+                    <div v-if="contentForm.type !== 'text' && inputMethod === 'upload'" class="space-y-2">
+                        <Label>Pilih File</Label>
+                        <Input id="fileInput" type="file" class="cursor-pointer"
+                            accept=".pdf,.ppt,.pptx,.mp4,.png,.jpg,.jpeg"
+                            @change="contentForm.file_upload = $event.target.files[0]" :required="!isEditContentMode" />
+                        <p v-if="isEditContentMode" class="text-xs text-orange-500 mt-1">*Abaikan jika tidak ingin mengganti file lama.</p>
+                    </div>
+
+                    <div v-if="contentForm.type !== 'text' && inputMethod === 'link'" class="space-y-2">
+                        <Label>URL Tautan</Label>
+                        <Input type="url" v-model="contentForm.file_url" placeholder="https://..." required />
+                    </div>
+
                     <div class="flex justify-end gap-3 mt-6">
                         <Button type="button" variant="outline" @click="isContentModalOpen = false">Batal</Button>
                         <Button type="submit" class="bg-[#194872] hover:bg-[#194872]/90 text-white" :disabled="contentForm.processing">

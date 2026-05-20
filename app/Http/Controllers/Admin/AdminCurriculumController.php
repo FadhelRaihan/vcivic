@@ -8,6 +8,7 @@ use App\Models\Team;
 use App\Models\Meeting;
 use App\Models\MeetingContent;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Storage;
 
 class AdminCurriculumController extends Controller
 {
@@ -88,16 +89,37 @@ class AdminCurriculumController extends Controller
     public function storeContent(Request $request, Meeting $meeting)
     {
         $request->validate([
-            'type' => 'required|in:video,pdf,link,infografis,text',
+            'type' => 'required|in:pdf,ppt,video,infografis,link,text',
             'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'file_url' => 'nullable|string',
+            'file_upload' => 'nullable|file|max:20480',
+            'content' => 'nullable|string',
         ]);
+
+        $fileUrl = null;
+
+        if ($request->type === 'text') {
+            $fileUrl = $request->input('content') ?: $request->input('file_url');
+        } elseif ($request->filled('file_url')) {
+            $fileUrl = $request->file_url;
+        } elseif ($request->hasFile('file_upload')) {
+            $file = $request->file('file_upload');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('meeting_contents', $filename, 'supabase');
+
+            if ($path) {
+                $endpoint = config('filesystems.disks.supabase.endpoint');
+                $bucket = config('filesystems.disks.supabase.bucket');
+                $baseUrl = str_replace('/s3', '/object/public/' . $bucket . '/', $endpoint);
+                $fileUrl = $baseUrl . $path;
+            }
+        }
 
         MeetingContent::create([
             'meeting_id' => $meeting->id,
             'type' => $request->type,
             'title' => $request->title,
-            'file_url' => $request->input('content'),
+            'file_url' => $fileUrl,
         ]);
 
         return back()->with('success', 'Materi Master berhasil ditambahkan.');
@@ -106,18 +128,47 @@ class AdminCurriculumController extends Controller
     /**
      * Update content in the template.
      */
-    public function updateContent(Request $request, MeetingContent $content)
+    public function updateContent(Request $request, Meeting $meeting, MeetingContent $content)
     {
         $request->validate([
-            'type' => 'required|in:video,pdf,link,infografis,text',
+            'type' => 'required|in:pdf,ppt,video,infografis,link,text',
             'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'file_url' => 'nullable|string',
+            'file_upload' => 'nullable|file|max:20480',
+            'content' => 'nullable|string',
         ]);
+
+        $fileUrl = $content->file_url;
+
+        if ($request->type === 'text') {
+            $fileUrl = $request->input('content') ?: $request->input('file_url');
+        } elseif ($request->filled('file_url')) {
+            $fileUrl = $request->file_url;
+        } elseif ($request->hasFile('file_upload')) {
+            // Hapus file lama jika ada di Supabase
+            if ($content->file_url && str_contains($content->file_url, 'supabase.co')) {
+                $oldPath = explode('meeting_contents/', $content->file_url)[1] ?? null;
+                if ($oldPath) {
+                    Storage::disk('supabase')->delete('meeting_contents/' . $oldPath);
+                }
+            }
+
+            $file = $request->file('file_upload');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('meeting_contents', $filename, 'supabase');
+
+            if ($path) {
+                $endpoint = config('filesystems.disks.supabase.endpoint');
+                $bucket = config('filesystems.disks.supabase.bucket');
+                $baseUrl = str_replace('/s3', '/object/public/' . $bucket . '/', $endpoint);
+                $fileUrl = $baseUrl . $path;
+            }
+        }
 
         $content->update([
             'type' => $request->type,
             'title' => $request->title,
-            'file_url' => $request->input('content'),
+            'file_url' => $fileUrl,
         ]);
 
         return back()->with('success', 'Materi Master berhasil diperbarui.');
@@ -126,8 +177,22 @@ class AdminCurriculumController extends Controller
     /**
      * Delete content from the template.
      */
-    public function destroyContent(MeetingContent $content)
+    public function destroyContent(Meeting $meeting, MeetingContent $content)
     {
+        if ($content->file_url) {
+            if (str_contains($content->file_url, 'storage/meeting_contents')) {
+                $oldPath = explode('storage/', $content->file_url)[1] ?? null;
+                if ($oldPath) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            } elseif (str_contains($content->file_url, 'supabase.co')) {
+                $oldPath = explode('meeting_contents/', $content->file_url)[1] ?? null;
+                if ($oldPath) {
+                    Storage::disk('supabase')->delete('meeting_contents/' . $oldPath);
+                }
+            }
+        }
+
         $content->delete();
         return back()->with('success', 'Materi Master berhasil dihapus.');
     }
