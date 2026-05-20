@@ -96,7 +96,10 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => 'prefer'
+            'sslmode' => 'prefer',
+            'options' => [
+                PDO::ATTR_EMULATE_PREPARES => !env('DB_PREPARED_STATEMENTS', true),
+            ],
         ],
 
         'sqlsrv' => [
