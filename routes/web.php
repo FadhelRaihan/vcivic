@@ -6,7 +6,10 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 
 Route::get('/', function () {
-    return redirect()->route('dashboard');
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+    return Inertia::render('Welcome');
 });
 
 Route::get('/portal-admin', function () {

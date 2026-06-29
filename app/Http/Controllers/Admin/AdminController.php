@@ -54,7 +54,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Menambahkan pengguna baru secara manual dengan memvalidasi atribut registrasi.
+     * Menambahkan pengguna baru secara ma=nual dengan memvalidasi atribut registrasi.
      * Input: Data Request pendaftaran (User). Output: Redirect ke halaman sebelumnya setelah berhasil.
      */
     public function store(Request $request)
